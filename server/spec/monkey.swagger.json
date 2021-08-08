@@ -1,0 +1,137 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "spec/monkey.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Monkey"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/albums": {
+      "post": {
+        "summary": "Sends a greeting",
+        "operationId": "Monkey_GetAlbums",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/specAlbumReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/specAlbumRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Monkey"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "specAlbum": {
+      "type": "object",
+      "properties": {
+        "imageUrl": {
+          "type": "string"
+        },
+        "albumTitle": {
+          "type": "string"
+        },
+        "songs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/specSong"
+          }
+        }
+      }
+    },
+    "specAlbumReply": {
+      "type": "object",
+      "properties": {
+        "albums": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/specAlbum"
+          }
+        }
+      },
+      "title": "The response message containing the greetings"
+    },
+    "specAlbumRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "The request message containing the user's name."
+    },
+    "specSong": {
+      "type": "object",
+      "properties": {
+        "songTitle": {
+          "type": "string"
+        },
+        "trackNumber": {
+          "type": "string"
+        },
+        "songUrl": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
