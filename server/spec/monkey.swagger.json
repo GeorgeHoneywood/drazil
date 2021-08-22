@@ -16,15 +16,14 @@
     "application/json"
   ],
   "paths": {
-    "/v1/albums": {
-      "post": {
-        "summary": "Sends a greeting",
-        "operationId": "Monkey_GetAlbums",
+    "/v1/artist/{artistId}/album/{albumId}/songs": {
+      "get": {
+        "operationId": "Monkey_ListSongs",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/specAlbumReply"
+              "$ref": "#/definitions/specSongsReply"
             }
           },
           "default": {
@@ -36,14 +35,73 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "artistId",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/specAlbumRequest"
-            }
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "albumId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
           }
         ],
+        "tags": [
+          "Monkey"
+        ]
+      }
+    },
+    "/v1/artist/{artistId}/albums": {
+      "get": {
+        "operationId": "Monkey_ListAlbums",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/specAlbumsReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "Monkey"
+        ]
+      }
+    },
+    "/v1/artists": {
+      "get": {
+        "operationId": "Monkey_ListArtists",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/specArtistsReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
         "tags": [
           "Monkey"
         ]
@@ -84,21 +142,19 @@
     "specAlbum": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
         "imageUrl": {
           "type": "string"
         },
-        "albumTitle": {
+        "name": {
           "type": "string"
-        },
-        "songs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/specSong"
-          }
         }
       }
     },
-    "specAlbumReply": {
+    "specAlbumsReply": {
       "type": "object",
       "properties": {
         "albums": {
@@ -107,29 +163,54 @@
             "$ref": "#/definitions/specAlbum"
           }
         }
-      },
-      "title": "The response message containing the greetings"
+      }
     },
-    "specAlbumRequest": {
+    "specArtist": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "int64"
         }
-      },
-      "description": "The request message containing the user's name."
+      }
+    },
+    "specArtistsReply": {
+      "type": "object",
+      "properties": {
+        "artists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/specArtist"
+          }
+        }
+      }
     },
     "specSong": {
       "type": "object",
       "properties": {
-        "songTitle": {
+        "name": {
           "type": "string"
         },
-        "trackNumber": {
-          "type": "string"
-        },
-        "songUrl": {
-          "type": "string"
+        "number": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "specSongsReply": {
+      "type": "object",
+      "properties": {
+        "songs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/specSong"
+          }
         }
       }
     }

@@ -18,8 +18,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MonkeyClient interface {
-	// Sends a greeting
-	GetAlbums(ctx context.Context, in *AlbumRequest, opts ...grpc.CallOption) (*AlbumReply, error)
+	ListArtists(ctx context.Context, in *ArtistsRequest, opts ...grpc.CallOption) (*ArtistsReply, error)
+	ListAlbums(ctx context.Context, in *AlbumsRequest, opts ...grpc.CallOption) (*AlbumsReply, error)
+	ListSongs(ctx context.Context, in *SongsRequest, opts ...grpc.CallOption) (*SongsReply, error)
 }
 
 type monkeyClient struct {
@@ -30,9 +31,27 @@ func NewMonkeyClient(cc grpc.ClientConnInterface) MonkeyClient {
 	return &monkeyClient{cc}
 }
 
-func (c *monkeyClient) GetAlbums(ctx context.Context, in *AlbumRequest, opts ...grpc.CallOption) (*AlbumReply, error) {
-	out := new(AlbumReply)
-	err := c.cc.Invoke(ctx, "/spec.Monkey/GetAlbums", in, out, opts...)
+func (c *monkeyClient) ListArtists(ctx context.Context, in *ArtistsRequest, opts ...grpc.CallOption) (*ArtistsReply, error) {
+	out := new(ArtistsReply)
+	err := c.cc.Invoke(ctx, "/spec.Monkey/ListArtists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monkeyClient) ListAlbums(ctx context.Context, in *AlbumsRequest, opts ...grpc.CallOption) (*AlbumsReply, error) {
+	out := new(AlbumsReply)
+	err := c.cc.Invoke(ctx, "/spec.Monkey/ListAlbums", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monkeyClient) ListSongs(ctx context.Context, in *SongsRequest, opts ...grpc.CallOption) (*SongsReply, error) {
+	out := new(SongsReply)
+	err := c.cc.Invoke(ctx, "/spec.Monkey/ListSongs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +62,9 @@ func (c *monkeyClient) GetAlbums(ctx context.Context, in *AlbumRequest, opts ...
 // All implementations must embed UnimplementedMonkeyServer
 // for forward compatibility
 type MonkeyServer interface {
-	// Sends a greeting
-	GetAlbums(context.Context, *AlbumRequest) (*AlbumReply, error)
+	ListArtists(context.Context, *ArtistsRequest) (*ArtistsReply, error)
+	ListAlbums(context.Context, *AlbumsRequest) (*AlbumsReply, error)
+	ListSongs(context.Context, *SongsRequest) (*SongsReply, error)
 	mustEmbedUnimplementedMonkeyServer()
 }
 
@@ -52,8 +72,14 @@ type MonkeyServer interface {
 type UnimplementedMonkeyServer struct {
 }
 
-func (UnimplementedMonkeyServer) GetAlbums(context.Context, *AlbumRequest) (*AlbumReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAlbums not implemented")
+func (UnimplementedMonkeyServer) ListArtists(context.Context, *ArtistsRequest) (*ArtistsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListArtists not implemented")
+}
+func (UnimplementedMonkeyServer) ListAlbums(context.Context, *AlbumsRequest) (*AlbumsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAlbums not implemented")
+}
+func (UnimplementedMonkeyServer) ListSongs(context.Context, *SongsRequest) (*SongsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSongs not implemented")
 }
 func (UnimplementedMonkeyServer) mustEmbedUnimplementedMonkeyServer() {}
 
@@ -68,20 +94,56 @@ func RegisterMonkeyServer(s grpc.ServiceRegistrar, srv MonkeyServer) {
 	s.RegisterService(&Monkey_ServiceDesc, srv)
 }
 
-func _Monkey_GetAlbums_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AlbumRequest)
+func _Monkey_ListArtists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ArtistsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MonkeyServer).GetAlbums(ctx, in)
+		return srv.(MonkeyServer).ListArtists(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/spec.Monkey/GetAlbums",
+		FullMethod: "/spec.Monkey/ListArtists",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MonkeyServer).GetAlbums(ctx, req.(*AlbumRequest))
+		return srv.(MonkeyServer).ListArtists(ctx, req.(*ArtistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Monkey_ListAlbums_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AlbumsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonkeyServer).ListAlbums(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/spec.Monkey/ListAlbums",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonkeyServer).ListAlbums(ctx, req.(*AlbumsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Monkey_ListSongs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SongsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonkeyServer).ListSongs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/spec.Monkey/ListSongs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonkeyServer).ListSongs(ctx, req.(*SongsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -94,8 +156,16 @@ var Monkey_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*MonkeyServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetAlbums",
-			Handler:    _Monkey_GetAlbums_Handler,
+			MethodName: "ListArtists",
+			Handler:    _Monkey_ListArtists_Handler,
+		},
+		{
+			MethodName: "ListAlbums",
+			Handler:    _Monkey_ListAlbums_Handler,
+		},
+		{
+			MethodName: "ListSongs",
+			Handler:    _Monkey_ListSongs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
