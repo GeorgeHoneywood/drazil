@@ -45,8 +45,8 @@
 export default {
   data () {
     return {
-      clipped: false,
-      drawer: true,
+      clipped: true,
+      drawer: false,
       items: [
         {
           icon: 'mdi-apps',
@@ -60,7 +60,18 @@ export default {
         }
       ],
       miniVariant: false,
-      title: 'Monkey!'
+      title: 'Welcome to Monkey!'
+    }
+  },
+  created () {
+    this.setTitleListener()
+  },
+  methods: {
+    setTitleListener () {
+      this.$nuxt.$on('updateTitle', this.setTitle)
+    },
+    setTitle (title) {
+      this.title = title || 'Monkey'
     }
   }
 }

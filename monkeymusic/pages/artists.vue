@@ -33,22 +33,24 @@ export default Vue.extend({
         {
           text: 'ID',
           value: 'id',
-          align: 'start',
-          sortable: false
+          align: 'left',
+          sortable: false,
+          width: '1%'
         },
         {
           text: 'Artist name',
           value: 'name',
-          align: 'start',
-          sortable: false
+          sortable: true
         }
       ],
       artists: [] as SpecArtist[],
-      loading: true
+      loading: true,
       // artistCount: 0
+      title: 'Artists'
     }
   },
   mounted () {
+    this.updateTitle()
     this.getArtists()
   },
   methods: {
@@ -69,6 +71,9 @@ export default Vue.extend({
     },
     clicked (row: any) {
       console.log('hello', row.id)
+    },
+    updateTitle () {
+      this.$nuxt.$emit('updateTitle', this.title)
     }
   }
 })
