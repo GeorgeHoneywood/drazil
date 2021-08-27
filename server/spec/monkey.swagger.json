@@ -188,6 +188,10 @@
           "items": {
             "$ref": "#/definitions/specArtist"
           }
+        },
+        "artistCount": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

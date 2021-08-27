@@ -91,6 +91,13 @@ func (s *server) ListArtists(ctx context.Context, in *pb.ArtistsRequest) (*pb.Ar
 		log.Print(err)
 	}
 
+	var artistCount int32
+	err = db.Get(&artistCount,
+		`SELECT COUNT(*) FROM artist;`)
+	if err != nil {
+		log.Print(err)
+	}
+
 	out := make([]*pb.Artist, len(artists))
 	for i, artist := range artists {
 		out[i] = &pb.Artist{
@@ -101,7 +108,8 @@ func (s *server) ListArtists(ctx context.Context, in *pb.ArtistsRequest) (*pb.Ar
 	}
 
 	return &pb.ArtistsReply{
-		Artists: out,
+		Artists:     out,
+		ArtistCount: artistCount,
 	}, nil
 }
 
@@ -380,6 +388,19 @@ func findSongs(tx *sqlx.Tx, dir string, artist_name string, album_name string, a
 	return nil
 }
 
+func cors(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE")
+		// w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, ResponseType")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func run() error {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
@@ -410,7 +431,7 @@ func run() error {
 	}
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(":8081", mux)
+	return http.ListenAndServe(":8081", cors(mux))
 }
 
 func main() {
@@ -446,16 +467,6 @@ func main() {
 		log.Printf("error walking directories: %s", err.Error())
 	}
 
-	// artists := []Artist{}
-	// err = db.Select(&artists, `SELECT * FROM artist;`)
-	// if err != nil {
-	// 	log.Print(err)
-	// }
-
-	// for i, a := range artists {
-	// 	fmt.Printf("i: %v, a: %v\n", i, a)
-	// }
-
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
@@ -464,8 +475,8 @@ func main() {
 func setupTables(db *sqlx.DB) error {
 	_, err := db.Exec(`CREATE TABLE artist (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name VARCHAR,
-		path VARCHAR
+		name VARCHAR NOT NULL,
+		path VARCHAR NOT NULL
 	);`)
 	if err != nil {
 		return err
@@ -473,9 +484,9 @@ func setupTables(db *sqlx.DB) error {
 
 	_, err = db.Exec(`CREATE TABLE album (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name VARCHAR,
-		artist_id INTEGER,
-		path VARCHAR,
+		name VARCHAR NOT NULL,
+		artist_id INTEGER NOT NULL,
+		path VARCHAR NOT NULL,
 		FOREIGN KEY(artist_id) REFERENCES artist(id)
 	);`)
 	if err != nil {
@@ -485,9 +496,9 @@ func setupTables(db *sqlx.DB) error {
 	_, err = db.Exec(`CREATE TABLE song (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		number INTEGER,
-		name VARCHAR,
-		album_id INTEGER,
-		path VARCHAR,
+		name VARCHAR NOT NULL,
+		album_id INTEGER NOT NULL,
+		path VARCHAR NOT NULL,
 		FOREIGN KEY(album_id) REFERENCES album(id)
 	);`)
 	if err != nil {

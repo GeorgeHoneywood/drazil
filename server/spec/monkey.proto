@@ -29,6 +29,7 @@ message ArtistsRequest {
 
 message ArtistsReply {
   repeated Artist artists = 1;
+  int32 artist_count = 2;
 }
 
 message Artist {
