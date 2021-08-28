@@ -1,21 +1,28 @@
 <template>
   <!-- <v-row justify="center" align="center">
     <v-col cols="12" sm="8" md="6"> -->
-  <div>
+  <div v-if="!notFound">
     <v-card>
       <v-card-title class="headline">
-        See artists here!
+        {{ artistName }}
       </v-card-title>
     </v-card>
     <v-data-table
       :headers="headers"
-      :items="artists"
+      :items="albums"
       :loading="loading"
       :footer-props="{
         'items-per-page-options': [10, 25, 50]
       }"
       @click:row="clicked"
     />
+  </div>
+  <div v-else>
+    <v-card>
+      <v-card-title class="headline">
+        Could not find this artist
+      </v-card-title>
+    </v-card>
   </div>
   <!-- :server-items-length="artistCount" -->
   <!-- </v-col>
@@ -24,7 +31,8 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MonkeyApi, SpecArtist } from 'monkey-api'
+import { MonkeyApi, SpecAlbum } from 'monkey-api'
+import { AxiosError } from 'axios'
 
 export default Vue.extend({
   data () {
@@ -43,34 +51,37 @@ export default Vue.extend({
           sortable: true
         }
       ],
-      artists: [] as SpecArtist[],
+      albums: [] as SpecAlbum[],
       loading: true,
+      notFound: false,
       // artistCount: 0
-      title: 'Artists'
+      title: 'Albums',
+      artistName: 'Loading...'
     }
   },
   mounted () {
     this.updateTitle()
-    this.getArtists()
+    this.getAlbum()
   },
   methods: {
-    getArtists () {
+    getAlbum () {
       this.loading = true
 
       const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
-      api.monkeyListArtists().then((res) => {
-        if (res.data.artists) {
-          this.artists = res.data.artists
-        }
+      api.monkeyListAlbums(this.$route.params.artist_id).then((res) => {
+        this.albums = res.data.albums!
+        this.artistName = res.data.artistName!
 
         // this.artistCount = res.data.artistCount
-      }).catch((err) => {
-        console.error(err)
+      }).catch((err: AxiosError) => {
+        if (err.response?.status === 404) {
+          this.notFound = true
+        }
       }).finally(() => { this.loading = false })
     },
     clicked (row: any) {
-      this.$router.push({ path: `/artist/${row.id}/albums` })
+      console.log('hello', row.id)
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)

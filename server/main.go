@@ -122,27 +122,25 @@ func (s *server) ListAlbums(ctx context.Context, in *pb.AlbumsRequest) (*pb.Albu
 		in.ArtistId)
 	if err != nil {
 		log.Print(err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if len(albums) < 1 {
+		return nil, status.Error(codes.NotFound, "No albums found for this artist")
+	}
+
+	artistName := ""
+	err = db.Get(&artistName,
+		`SELECT name FROM artist 
+		WHERE id=$1;`,
+		in.ArtistId)
+	if err != nil {
+		log.Print(err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	out := make([]*pb.Album, len(albums))
 	for i, album := range albums {
-		// 	songs := []Song{}
-		// 	err := db.Select(&songs,
-		// 		`SELECT * FROM song
-		// 		WHERE album_id=$1;`,
-		// 		album.ID)
-		// 	if err != nil {
-		// 		log.Print(err)
-		// 	}
-
-		// 	songsOut := make([]*pb.Song, len(songs))
-		// 	for j, song := range songs {
-		// 		songsOut[j] = &pb.Song{
-		// 			Name:   song.Name,
-		// 			Number: song.Number,
-		// 		}
-		// 	}
-
 		out[i] = &pb.Album{
 			Id:       album.ID,
 			ImageUrl: "xyz",
@@ -151,7 +149,8 @@ func (s *server) ListAlbums(ctx context.Context, in *pb.AlbumsRequest) (*pb.Albu
 	}
 
 	return &pb.AlbumsReply{
-		Albums: out,
+		Albums:     out,
+		ArtistName: artistName,
 	}, nil
 }
 

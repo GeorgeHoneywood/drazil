@@ -102,6 +102,12 @@ export interface SpecAlbumsReply {
      * @memberof SpecAlbumsReply
      */
     albums?: Array<SpecAlbum>;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAlbumsReply
+     */
+    artistName?: string;
 }
 /**
  * 
