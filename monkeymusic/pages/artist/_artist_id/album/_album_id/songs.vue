@@ -1,21 +1,28 @@
 <template>
   <!-- <v-row justify="center" align="center">
     <v-col cols="12" sm="8" md="6"> -->
-  <div>
+  <div v-if="!notFound">
     <v-card>
       <v-card-title class="headline">
-        See artists here!
+        {{ artistName }}
       </v-card-title>
     </v-card>
     <v-data-table
       :headers="headers"
-      :items="artists"
+      :items="songs"
       :loading="loading"
       :footer-props="{
         'items-per-page-options': [10, 25, 50]
       }"
       @click:row="clicked"
     />
+  </div>
+  <div v-else>
+    <v-card>
+      <v-card-title class="headline">
+        Could not find this artist
+      </v-card-title>
+    </v-card>
   </div>
   <!-- :server-items-length="artistCount" -->
   <!-- </v-col>
@@ -24,15 +31,15 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MonkeyApi, SpecArtist } from 'monkey-api'
+import { MonkeyApi, SpecSong } from 'monkey-api'
 import { AxiosError } from 'axios'
 
 export default Vue.extend({
-  asyncData () {
+  asyncData (context) {
     const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
-    return api.monkeyListArtists().then((res) => {
-      return { artists: res.data.artists!, loading: false }
+    return api.monkeyListSongs(context.route.params.artist_id, context.route.params.album_id).then((res) => {
+      return { songs: res.data.songs!, loading: false }
     }).catch((err: AxiosError) => {
       if (err.response?.status === 404) {
         return { notFound: true }
@@ -43,22 +50,24 @@ export default Vue.extend({
     return {
       headers: [
         {
-          text: 'ID',
-          value: 'id',
+          text: 'Track number',
+          value: 'number',
           align: 'left',
           sortable: false,
           width: '1%'
         },
         {
-          text: 'Artist name',
+          text: 'Song name',
           value: 'name',
           sortable: true
         }
       ],
-      artists: [] as SpecArtist[],
+      songs: [] as SpecSong[],
       loading: true,
+      notFound: false,
       // artistCount: 0
-      title: 'Artists'
+      title: 'Songs',
+      artistName: 'Loading...'
     }
   },
   mounted () {
@@ -66,7 +75,7 @@ export default Vue.extend({
   },
   methods: {
     clicked (row: any) {
-      this.$router.push({ path: `/artist/${row.id}/albums` })
+      console.log(row)
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)

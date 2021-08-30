@@ -35,6 +35,17 @@ import { MonkeyApi, SpecAlbum } from 'monkey-api'
 import { AxiosError } from 'axios'
 
 export default Vue.extend({
+  asyncData (context) {
+    const api = new MonkeyApi(undefined, 'http://localhost:8081')
+
+    return api.monkeyListAlbums(context.route.params.artist_id).then((res) => {
+      return { albums: res.data.albums!, artistName: res.data.artistName!, loading: false }
+    }).catch((err: AxiosError) => {
+      if (err.response?.status === 404) {
+        return { notFound: true }
+      }
+    })
+  },
   data () {
     return {
       headers: [
@@ -61,27 +72,11 @@ export default Vue.extend({
   },
   mounted () {
     this.updateTitle()
-    this.getAlbum()
   },
   methods: {
-    getAlbum () {
-      this.loading = true
-
-      const api = new MonkeyApi(undefined, 'http://localhost:8081')
-
-      api.monkeyListAlbums(this.$route.params.artist_id).then((res) => {
-        this.albums = res.data.albums!
-        this.artistName = res.data.artistName!
-
-        // this.artistCount = res.data.artistCount
-      }).catch((err: AxiosError) => {
-        if (err.response?.status === 404) {
-          this.notFound = true
-        }
-      }).finally(() => { this.loading = false })
-    },
     clicked (row: any) {
       console.log('hello', row.id)
+      this.$router.push({ path: `/artist/${this.$route.params.artist_id}/album/${row.id}/songs` })
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)
