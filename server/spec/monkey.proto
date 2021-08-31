@@ -50,7 +50,7 @@ message AlbumsReply {
 
 message Album {
   int64 id = 1;
-  string image_url = 2;
+  string album_art = 2;
   string name = 3;
 }
 

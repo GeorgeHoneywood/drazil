@@ -11,8 +11,9 @@
       :headers="headers"
       :items="artists"
       :loading="loading"
+      :items-per-page="-1"
       :footer-props="{
-        'items-per-page-options': [10, 25, 50]
+        'items-per-page-options': [10, 25, 50, -1]
       }"
       @click:row="clicked"
     />

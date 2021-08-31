@@ -146,7 +146,7 @@
           "type": "string",
           "format": "int64"
         },
-        "imageUrl": {
+        "albumArt": {
           "type": "string"
         },
         "name": {

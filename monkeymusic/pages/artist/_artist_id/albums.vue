@@ -15,7 +15,11 @@
         'items-per-page-options': [10, 25, 50]
       }"
       @click:row="clicked"
-    />
+    >
+      <template #item.albumArt="{ item }">
+        <v-img :src="item.albumArt" dark class="rounded" width="40px" />
+      </template>
+    </v-data-table>
   </div>
   <div v-else>
     <v-card>
@@ -57,10 +61,17 @@ export default Vue.extend({
           width: '1%'
         },
         {
+          text: 'Art',
+          value: 'albumArt',
+          sortable: false,
+          width: '1%'
+        },
+        {
           text: 'Artist name',
           value: 'name',
           sortable: true
         }
+
       ],
       albums: [] as SpecAlbum[],
       loading: true,

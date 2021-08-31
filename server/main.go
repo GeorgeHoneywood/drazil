@@ -54,6 +54,7 @@ type server struct {
 
 const (
 	port         = "localhost:9090"
+	servePath    = "localhost:8081"
 	musicPath    = "/home/honeyfox/Music/"
 	databasePath = "./monkey.db"
 )
@@ -69,6 +70,7 @@ type Album struct {
 	ArtistID int64 `db:"artist_id"`
 	Name     string
 	Path     string
+	AlbumArt string `db:"album_art"`
 }
 type Song struct {
 	ID      int64
@@ -142,9 +144,12 @@ func (s *server) ListAlbums(ctx context.Context, in *pb.AlbumsRequest) (*pb.Albu
 	out := make([]*pb.Album, len(albums))
 	for i, album := range albums {
 		out[i] = &pb.Album{
-			Id:       album.ID,
-			ImageUrl: "xyz",
-			Name:     album.Name,
+			Id:   album.ID,
+			Name: album.Name,
+		}
+
+		if album.AlbumArt != "" {
+			out[i].AlbumArt = "http://" + servePath + "/media/" + strings.TrimPrefix(album.AlbumArt, musicPath)
 		}
 	}
 
@@ -282,9 +287,15 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *Artist) err
 			Path:     path.String(),
 		}
 
+		path.WriteString("/cover.jpg")
+
+		if _, err := os.Stat(path.String()); err == nil {
+			album.AlbumArt = path.String()
+		}
+
 		rows, err := tx.NamedQuery(`
-		INSERT INTO album (artist_id, name, path)
-        VALUES (:artist_id, :name, :path)
+		INSERT INTO album (artist_id, name, path, album_art)
+        VALUES (:artist_id, :name, :path, :album_art)
 		RETURNING id;`, album)
 		if err != nil {
 			return err
@@ -293,7 +304,7 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *Artist) err
 			rows.Scan(&album.ID)
 		}
 
-		err = findSongs(tx, path.String(), artist_name, albumName, album)
+		err = findSongs(tx, album.Path, artist_name, albumName, album)
 		if err != nil {
 			return err
 		}
@@ -429,8 +440,21 @@ func run() error {
 		return err
 	}
 
+	// fs := http.FileServer(http.Dir(musicPath))
+	err = mux.HandlePath("GET", "/media/{path=**}", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		fileBytes, err := os.ReadFile(musicPath + params["path"])
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+		}
+
+		w.Write(fileBytes)
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
-	return http.ListenAndServe(":8081", cors(mux))
+	return http.ListenAndServe(servePath, cors(mux))
 }
 
 func main() {
@@ -486,6 +510,7 @@ func setupTables(db *sqlx.DB) error {
 		name VARCHAR NOT NULL,
 		artist_id INTEGER NOT NULL,
 		path VARCHAR NOT NULL,
+		album_art VARCHAR,
 		FOREIGN KEY(artist_id) REFERENCES artist(id)
 	);`)
 	if err != nil {

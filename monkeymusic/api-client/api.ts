@@ -82,7 +82,7 @@ export interface SpecAlbum {
      * @type {string}
      * @memberof SpecAlbum
      */
-    imageUrl?: string;
+    albumArt?: string;
     /**
      * 
      * @type {string}
