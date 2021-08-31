@@ -16,7 +16,7 @@
       }"
       @click:row="clicked"
     >
-      <template #item.albumArt="{ item }">
+      <template #[`item.albumArt`]="{ item }">
         <v-img :src="item.albumArt" dark class="rounded" width="40px" />
       </template>
     </v-data-table>
@@ -54,20 +54,13 @@ export default Vue.extend({
     return {
       headers: [
         {
-          text: 'ID',
-          value: 'id',
-          align: 'left',
-          sortable: false,
-          width: '1%'
-        },
-        {
-          text: 'Art',
+          // text: 'Art',
           value: 'albumArt',
           sortable: false,
           width: '1%'
         },
         {
-          text: 'Artist name',
+          text: 'Album name',
           value: 'name',
           sortable: true
         }

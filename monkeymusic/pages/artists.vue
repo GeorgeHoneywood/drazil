@@ -4,7 +4,7 @@
   <div>
     <v-card>
       <v-card-title class="headline">
-        See artists here!
+        Collection
       </v-card-title>
     </v-card>
     <v-data-table
@@ -12,21 +12,66 @@
       :items="artists"
       :loading="loading"
       :items-per-page="-1"
+      :show-expand="true"
+      :single-expand="true"
       :footer-props="{
         'items-per-page-options': [10, 25, 50, -1]
       }"
       @click:row="clicked"
-    />
+      @item-expanded="expanded"
+    >
+      <template #expanded-item="{ headers }">
+        <td
+          :colspan="headers.length"
+        >
+          <v-data-table
+            hide-default-footer
+            hide-default-header
+            :items="artistAlbums"
+            :headers="[{
+                         value: 'albumArt',
+                         sortable: false,
+                         width: '1%'
+                       },
+                       {
+                         text: 'Album name',
+                         value: 'name'
+                       }]"
+            @click:row="showAlbum"
+          >
+            <template #[`item.albumArt`]="{ item }">
+              <v-img :src="item.albumArt" dark class="rounded" width="32px" />
+            </template>
+            <!-- <thead style="display: none">
+                <tr>
+                  <th style="width: 1%" />
+                  <th />
+                </tr>
+              </thead> -->
+            <!-- <tbody>
+              <tr v-for="album in artistAlbums" :key="album.name" @click="showAlbum">
+                <td style="width: 1%">
+
+                </td>
+                <td>{{ album.name }}</td>
+              </tr>
+            </tbody> -->
+          </v-data-table>
+        </td>
+      </template>
+    </v-data-table>
   </div>
+</template>
+
   <!-- :server-items-length="artistCount" -->
   <!-- </v-col>
   </v-row> -->
-</template>
 
 <script lang="ts">
 import Vue from 'vue'
 import { MonkeyApi, SpecArtist } from 'monkey-api'
 import { AxiosError } from 'axios'
+import { SpecAlbum } from '~/api-client'
 
 export default Vue.extend({
   asyncData () {
@@ -44,19 +89,13 @@ export default Vue.extend({
     return {
       headers: [
         {
-          text: 'ID',
-          value: 'id',
-          align: 'left',
-          sortable: false,
-          width: '1%'
-        },
-        {
           text: 'Artist name',
           value: 'name',
           sortable: true
         }
       ],
       artists: [] as SpecArtist[],
+      artistAlbums: [] as SpecAlbum[],
       loading: true,
       // artistCount: 0
       title: 'Artists'
@@ -71,6 +110,20 @@ export default Vue.extend({
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)
+    },
+    async expanded ({ item, value } : {item: any, value: boolean}) {
+      if (!value) {
+        return
+      }
+      this.artistAlbums = []
+
+      const api = new MonkeyApi(undefined, 'http://localhost:8081')
+
+      this.artistAlbums = (await api.monkeyListAlbums(item.id)).data.albums!
+    },
+    showAlbum (row: any) {
+      console.log(row)
+      this.$router.push({ path: `/artist/${this.$route.params.artist_id}/album/${row.id}/songs` })
     }
   }
 })

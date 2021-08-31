@@ -50,10 +50,10 @@ export default Vue.extend({
     return {
       headers: [
         {
-          text: 'Track number',
+          text: '#',
           value: 'number',
           align: 'left',
-          sortable: false,
+          sortable: true,
           width: '1%'
         },
         {
