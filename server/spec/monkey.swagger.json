@@ -207,12 +207,24 @@
         "number": {
           "type": "integer",
           "format": "int32"
+        },
+        "path": {
+          "type": "string"
         }
       }
     },
     "specSongsReply": {
       "type": "object",
       "properties": {
+        "albumArt": {
+          "type": "string"
+        },
+        "artistName": {
+          "type": "string"
+        },
+        "albumName": {
+          "type": "string"
+        },
         "songs": {
           "type": "array",
           "items": {

@@ -183,16 +183,35 @@ func (s *server) ListSongs(ctx context.Context, in *pb.SongsRequest) (*pb.SongsR
 		log.Print(err)
 	}
 
+	artistName := ""
+	err = db.Get(&artistName,
+		`SELECT name FROM artist 
+		WHERE id=$1;`,
+		in.ArtistId)
+	if err != nil {
+		log.Print(err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if err != nil {
+		log.Print(err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	out := make([]*pb.Song, len(songs))
 	for i, song := range songs {
 		out[i] = &pb.Song{
 			Name:   song.Name,
 			Number: song.Number,
+			Path:   "http://" + servePath + "/media/" + strings.TrimPrefix(song.Path, musicPath),
 		}
 	}
 
 	return &pb.SongsReply{
-		Songs: out,
+		Songs:      out,
+		ArtistName: artistName,
+		AlbumName:  album.Name,
+		AlbumArt:   album.AlbumArt,
 	}, nil
 }
 

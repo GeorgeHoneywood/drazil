@@ -26,8 +26,8 @@
         >
           <v-data-table
             hide-default-footer
-            hide-default-header
             :items="artistAlbums"
+            :loading="loadingArtistAlbums"
             :headers="[{
                          value: 'albumArt',
                          sortable: false,
@@ -39,7 +39,7 @@
                        }]"
             @click:row="showAlbum"
           >
-            <template #[`item.albumArt`]="{ item }">
+            <template #[`item.albumArt`]="{ item }" style="width: 1%">
               <v-img :src="item.albumArt" dark class="rounded" width="32px" />
             </template>
             <!-- <thead style="display: none">
@@ -96,6 +96,8 @@ export default Vue.extend({
       ],
       artists: [] as SpecArtist[],
       artistAlbums: [] as SpecAlbum[],
+      loadingArtistAlbums: true,
+      expandedArtistID: 0,
       loading: true,
       // artistCount: 0
       title: 'Artists'
@@ -116,14 +118,16 @@ export default Vue.extend({
         return
       }
       this.artistAlbums = []
+      this.expandedArtistID = item.id
+      this.loadingArtistAlbums = true
 
       const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
       this.artistAlbums = (await api.monkeyListAlbums(item.id)).data.albums!
+      this.loadingArtistAlbums = false
     },
     showAlbum (row: any) {
-      console.log(row)
-      this.$router.push({ path: `/artist/${this.$route.params.artist_id}/album/${row.id}/songs` })
+      this.$router.push({ path: `/artist/${this.expandedArtistID}/album/${row.id}/songs` })
     }
   }
 })

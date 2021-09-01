@@ -60,10 +60,14 @@ message SongsRequest {
 }
 
 message SongsReply {
-  repeated Song songs = 1;
+  string album_art = 1;
+  string artist_name = 2;
+  string album_name = 3;
+  repeated Song songs = 4;
 }
 
 message Song {
   string name = 1;
   int32 number = 2;
+  string path = 3;
 }

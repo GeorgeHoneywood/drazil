@@ -171,6 +171,12 @@ export interface SpecSong {
      * @memberof SpecSong
      */
     number?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSong
+     */
+    path?: string;
 }
 /**
  * 
@@ -178,6 +184,24 @@ export interface SpecSong {
  * @interface SpecSongsReply
  */
 export interface SpecSongsReply {
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSongsReply
+     */
+    albumArt?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSongsReply
+     */
+    artistName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSongsReply
+     */
+    albumName?: string;
     /**
      * 
      * @type {Array<SpecSong>}

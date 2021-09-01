@@ -4,18 +4,21 @@
   <div v-if="!notFound">
     <v-card>
       <v-card-title class="headline">
-        {{ artistName }}
+        {{ artistName }} / {{ albumName }}
       </v-card-title>
     </v-card>
     <v-data-table
+      hide-default-footer
       :headers="headers"
       :items="songs"
       :loading="loading"
-      :footer-props="{
-        'items-per-page-options': [10, 25, 50]
-      }"
+      :items-per-page="-1"
       @click:row="clicked"
     />
+    <audio ref="player" style="width: 100%" controls>
+      <source :src="currentSong">
+      Your browser does not support the audio tag.
+    </audio>
   </div>
   <div v-else>
     <v-card>
@@ -32,19 +35,36 @@
 <script lang="ts">
 import Vue from 'vue'
 import { MonkeyApi, SpecSong } from 'monkey-api'
-import { AxiosError } from 'axios'
+import axios from 'axios'
 
 export default Vue.extend({
-  asyncData (context) {
+  async asyncData (context) {
     const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
-    return api.monkeyListSongs(context.route.params.artist_id, context.route.params.album_id).then((res) => {
-      return { songs: res.data.songs!, loading: false }
-    }).catch((err: AxiosError) => {
-      if (err.response?.status === 404) {
-        return { notFound: true }
+    try {
+      const res = await api.monkeyListSongs(context.route.params.artist_id, context.route.params.album_id)
+
+      return {
+        songs: res.data.songs!,
+        artistName: res.data.artistName!,
+        albumName: res.data.albumName!,
+        loading: false
       }
-    })
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response!.status === 404) {
+          return { notFound: true }
+        }
+      }
+    }
+
+    // songs: res.data.songs!, loading: false
+
+    // ).catch((err: AxiosError) => {
+    //   if (err.response?.status === 404) {
+    //     return { notFound: true }
+    //   }
+    // })
   },
   data () {
     return {
@@ -67,7 +87,14 @@ export default Vue.extend({
       notFound: false,
       // artistCount: 0
       title: 'Songs',
-      artistName: 'Loading...'
+      artistName: 'Loading...',
+      albumName: 'Loading...',
+      currentSong: ''
+    }
+  },
+  watch: {
+    currentSong () {
+      this.$refs.player!.load()
     }
   },
   mounted () {
@@ -75,7 +102,7 @@ export default Vue.extend({
   },
   methods: {
     clicked (row: any) {
-      console.log(row)
+      this.currentSong = row.path
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)

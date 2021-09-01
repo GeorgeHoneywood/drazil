@@ -79,7 +79,6 @@ export default Vue.extend({
   },
   methods: {
     clicked (row: any) {
-      console.log('hello', row.id)
       this.$router.push({ path: `/artist/${this.$route.params.artist_id}/album/${row.id}/songs` })
     },
     updateTitle () {
