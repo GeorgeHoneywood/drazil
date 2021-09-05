@@ -1,10 +1,6 @@
 <template>
-  <!-- <v-row justify="center" align="center">
-    <v-col cols="12" sm="8" md="6"> -->
   <div>
-    <!-- <p class="text-h2 mx-2 mb-6 mt-4 font-weight-light">
-      Collection
-    </p> -->
+    <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
       :headers="headers"
       :items="artists"
@@ -80,7 +76,16 @@ export default Vue.extend({
       loadingArtistAlbums: true,
       expandedArtistID: 0,
       loading: true,
-      title: 'Artists'
+      title: 'Artists',
+      breadcrumbs: [
+        {
+          text: 'Artists',
+          disabled: false,
+          to: {
+            name: 'artists'
+          },
+          exact: true
+        }]
     }
   },
   mounted () {

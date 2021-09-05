@@ -48,6 +48,14 @@ export default Vue.extend({
         loading: false,
         breadcrumbs: [
           {
+            text: 'Artists',
+            disabled: false,
+            to: {
+              name: 'artists'
+            },
+            exact: true
+          },
+          {
             text: res.data.artistName!,
             disabled: false,
             to: {

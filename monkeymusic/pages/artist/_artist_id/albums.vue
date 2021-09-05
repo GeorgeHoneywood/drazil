@@ -1,6 +1,4 @@
 <template>
-  <!-- <v-row justify="center" align="center">
-    <v-col cols="12" sm="8" md="6"> -->
   <div v-if="!notFound">
     <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
@@ -24,9 +22,6 @@
       </v-card-title>
     </v-card>
   </div>
-  <!-- :server-items-length="artistCount" -->
-  <!-- </v-col>
-  </v-row> -->
 </template>
 
 <script lang="ts">
@@ -45,11 +40,26 @@ export default Vue.extend({
         albums: res.data.albums!,
         artistName: res.data.artistName!,
         loading: false,
-        breadcrumbs: [{
-          text: res.data.artistName!,
-          disabled: false,
-          href: `/artist/${context.route.params.artist_id}/albums`
-        }]
+        breadcrumbs: [
+          {
+            text: 'Artists',
+            disabled: false,
+            to: {
+              name: 'artists'
+            },
+            exact: true
+          },
+          {
+            text: res.data.artistName!,
+            disabled: false,
+            to: {
+              name: 'artist-artist_id-albums',
+              params: {
+                artist_id: context.route.params.artist_id
+              }
+            },
+            exact: true
+          }]
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
