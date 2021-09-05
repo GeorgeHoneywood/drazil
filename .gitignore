@@ -135,3 +135,7 @@ dist
 server/__debug_bin
 server/monkey.db
 .gitignore
+monkey.code-workspace
+monkeymusic/.vscode/launch.json
+monkeymusic/.vscode/tasks.json
+server/.vscode/launch.json

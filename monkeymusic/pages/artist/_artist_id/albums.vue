@@ -2,11 +2,7 @@
   <!-- <v-row justify="center" align="center">
     <v-col cols="12" sm="8" md="6"> -->
   <div v-if="!notFound">
-    <v-card>
-      <v-card-title class="headline">
-        {{ artistName }}
-      </v-card-title>
-    </v-card>
+    <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
       :headers="headers"
       :items="albums"
@@ -36,19 +32,32 @@
 <script lang="ts">
 import Vue from 'vue'
 import { MonkeyApi, SpecAlbum } from 'monkey-api'
-import { AxiosError } from 'axios'
+import axios from 'axios'
 
 export default Vue.extend({
-  asyncData (context) {
+  async asyncData (context) {
     const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
-    return api.monkeyListAlbums(context.route.params.artist_id).then((res) => {
-      return { albums: res.data.albums!, artistName: res.data.artistName!, loading: false }
-    }).catch((err: AxiosError) => {
-      if (err.response?.status === 404) {
-        return { notFound: true }
+    try {
+      const res = await api.monkeyListAlbums(context.route.params.artist_id)
+
+      return {
+        albums: res.data.albums!,
+        artistName: res.data.artistName!,
+        loading: false,
+        breadcrumbs: [{
+          text: res.data.artistName!,
+          disabled: false,
+          href: `/artist/${context.route.params.artist_id}/albums`
+        }]
       }
-    })
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response!.status === 404) {
+          return { notFound: true }
+        }
+      }
+    }
   },
   data () {
     return {
@@ -71,7 +80,8 @@ export default Vue.extend({
       notFound: false,
       // artistCount: 0
       title: 'Albums',
-      artistName: 'Loading...'
+      artistName: 'Loading...',
+      breadcrumbs: []
     }
   },
   mounted () {

@@ -57,7 +57,7 @@ export default {
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      dark: true,
+      dark: false,
       themes: {
         dark: {
           primary: colors.blue.darken2,
@@ -67,12 +67,27 @@ export default {
           warning: colors.amber.base,
           error: colors.deepOrange.accent4,
           success: colors.green.accent3
+        }//,
+      //   light: {
+      //     primary: colors.indigo.base,
+      //     secondary: colors.deepPurple.base,
+      //     accent: colors.pink.base,
+      //     error: colors.red.base,
+      //     warning: colors.orange.base,
+      //     info: colors.blue.base,
+      //     success: colors.green.base
+      //   }
+      // }
+      }
+    },
+
+    // Build Configuration: https://go.nuxtjs.dev/config-build
+    build: {
+      extend (config, ctx) {
+        if (ctx.isDev) {
+          config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
         }
       }
     }
-  },
-
-  // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
   }
 }

@@ -2,11 +2,9 @@
   <!-- <v-row justify="center" align="center">
     <v-col cols="12" sm="8" md="6"> -->
   <div>
-    <v-card>
-      <v-card-title class="headline">
-        Collection
-      </v-card-title>
-    </v-card>
+    <!-- <p class="text-h2 mx-2 mb-6 mt-4 font-weight-light">
+      Collection
+    </p> -->
     <v-data-table
       :headers="headers"
       :items="artists"
@@ -23,6 +21,7 @@
       <template #expanded-item="{ headers }">
         <td
           :colspan="headers.length"
+          class="pa-3"
         >
           <v-data-table
             hide-default-footer
@@ -42,30 +41,12 @@
             <template #[`item.albumArt`]="{ item }" style="width: 1%">
               <v-img :src="item.albumArt" dark class="rounded" width="32px" />
             </template>
-            <!-- <thead style="display: none">
-                <tr>
-                  <th style="width: 1%" />
-                  <th />
-                </tr>
-              </thead> -->
-            <!-- <tbody>
-              <tr v-for="album in artistAlbums" :key="album.name" @click="showAlbum">
-                <td style="width: 1%">
-
-                </td>
-                <td>{{ album.name }}</td>
-              </tr>
-            </tbody> -->
           </v-data-table>
         </td>
       </template>
     </v-data-table>
   </div>
 </template>
-
-  <!-- :server-items-length="artistCount" -->
-  <!-- </v-col>
-  </v-row> -->
 
 <script lang="ts">
 import Vue from 'vue'
@@ -99,7 +80,6 @@ export default Vue.extend({
       loadingArtistAlbums: true,
       expandedArtistID: 0,
       loading: true,
-      // artistCount: 0
       title: 'Artists'
     }
   },
@@ -132,3 +112,9 @@ export default Vue.extend({
   }
 })
 </script>
+
+<style>
+.v-data-table__expanded.v-data-table__expanded__content {
+  box-shadow: none !important;
+}
+</style>

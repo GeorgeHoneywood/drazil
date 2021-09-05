@@ -1,12 +1,13 @@
 <template>
-  <!-- <v-row justify="center" align="center">
-    <v-col cols="12" sm="8" md="6"> -->
   <div v-if="!notFound">
-    <v-card>
+    <!-- <v-card>
       <v-card-title class="headline">
-        {{ artistName }} / {{ albumName }}
+        <NuxtLink :to="`/artist/${$route.params.artist_id}/albums`">
+          {{ artistName }}
+        </NuxtLink>  / {{ albumName }}
       </v-card-title>
-    </v-card>
+    </v-card> -->
+    <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
       hide-default-footer
       :headers="headers"
@@ -15,9 +16,8 @@
       :items-per-page="-1"
       @click:row="clicked"
     />
-    <audio ref="player" style="width: 100%" controls>
+    <audio ref="player" style="width: 75%; position: fixed; bottom: 0; right: 0;" controls>
       <source :src="currentSong">
-      Your browser does not support the audio tag.
     </audio>
   </div>
   <div v-else>
@@ -27,9 +27,6 @@
       </v-card-title>
     </v-card>
   </div>
-  <!-- :server-items-length="artistCount" -->
-  <!-- </v-col>
-  </v-row> -->
 </template>
 
 <script lang="ts">
@@ -48,7 +45,19 @@ export default Vue.extend({
         songs: res.data.songs!,
         artistName: res.data.artistName!,
         albumName: res.data.albumName!,
-        loading: false
+        loading: false,
+        breadcrumbs: [
+          {
+            text: res.data.artistName!,
+            disabled: false,
+            href: `/artist/${context.route.params.artist_id}/albums`
+          },
+          {
+            text: res.data.albumName!,
+            disabled: false,
+            href: `/artist/${context.route.params.artist_id}/album/${context.route.params.album_id}/songs`
+          }
+        ]
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -57,14 +66,6 @@ export default Vue.extend({
         }
       }
     }
-
-    // songs: res.data.songs!, loading: false
-
-    // ).catch((err: AxiosError) => {
-    //   if (err.response?.status === 404) {
-    //     return { notFound: true }
-    //   }
-    // })
   },
   data () {
     return {
@@ -73,13 +74,13 @@ export default Vue.extend({
           text: '#',
           value: 'number',
           align: 'left',
-          sortable: true,
+          sortable: false,
           width: '1%'
         },
         {
           text: 'Song name',
           value: 'name',
-          sortable: true
+          sortable: false
         }
       ],
       songs: [] as SpecSong[],
@@ -89,11 +90,13 @@ export default Vue.extend({
       title: 'Songs',
       artistName: 'Loading...',
       albumName: 'Loading...',
-      currentSong: ''
+      currentSong: '',
+      breadcrumbs: []
     }
   },
   watch: {
     currentSong () {
+      // @ts-ignore
       this.$refs.player!.load()
     }
   },

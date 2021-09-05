@@ -1,5 +1,5 @@
 <template>
-  <v-app dark>
+  <v-app>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -28,9 +28,10 @@
       :clipped-left="clipped"
       fixed
       app
+      color="primary"
     >
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title v-text="title" />
+      <v-app-bar-nav-icon style="color: white" @click.stop="drawer = !drawer" />
+      <v-toolbar-title class="white--text" v-text="title" />
       <v-spacer />
     </v-app-bar>
     <v-main>
