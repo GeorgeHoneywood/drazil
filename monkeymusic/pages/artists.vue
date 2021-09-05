@@ -88,7 +88,7 @@ export default Vue.extend({
   },
   methods: {
     clicked (row: any) {
-      this.$router.push({ path: `/artist/${row.id}/albums` })
+      this.$router.push({ name: 'artist-artist_id-albums', params: { artist_id: row.id } })
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)
@@ -107,7 +107,13 @@ export default Vue.extend({
       this.loadingArtistAlbums = false
     },
     showAlbum (row: any) {
-      this.$router.push({ path: `/artist/${this.expandedArtistID}/album/${row.id}/songs` })
+      this.$router.push({
+        name: 'artist-artist_id-album-album_id-songs',
+        params: {
+          artist_id: this.expandedArtistID.toString(),
+          album_id: row.id
+        }
+      })
     }
   }
 })

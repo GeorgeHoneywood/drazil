@@ -89,7 +89,13 @@ export default Vue.extend({
   },
   methods: {
     clicked (row: any) {
-      this.$router.push({ path: `/artist/${this.$route.params.artist_id}/album/${row.id}/songs` })
+      this.$router.push({
+        name: 'artist-artist_id-album-album_id-songs',
+        params: {
+          artist_id: this.$route.params.artist_id,
+          album_id: row.id
+        }
+      })
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)

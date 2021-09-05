@@ -50,12 +50,25 @@ export default Vue.extend({
           {
             text: res.data.artistName!,
             disabled: false,
-            href: `/artist/${context.route.params.artist_id}/albums`
+            to: {
+              name: 'artist-artist_id-albums',
+              params: {
+                artist_id: context.route.params.artist_id
+              }
+            },
+            exact: true
           },
           {
             text: res.data.albumName!,
             disabled: false,
-            href: `/artist/${context.route.params.artist_id}/album/${context.route.params.album_id}/songs`
+            to: {
+              name: 'artist-artist_id-album-album_id-songs',
+              params: {
+                artist_id: context.route.params.artist_id,
+                album_id: context.route.params.album_id
+              }
+            },
+            exact: true
           }
         ]
       }
