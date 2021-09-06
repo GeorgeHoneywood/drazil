@@ -1,13 +1,38 @@
 <template>
   <div v-if="!notFound">
-    <!-- <v-card>
-      <v-card-title class="headline">
-        <NuxtLink :to="`/artist/${$route.params.artist_id}/albums`">
-          {{ artistName }}
-        </NuxtLink>  / {{ albumName }}
-      </v-card-title>
-    </v-card> -->
     <v-breadcrumbs :items="breadcrumbs" />
+    <v-btn
+      elevation="1"
+      color="primary"
+      class="mr-1"
+      @click="play"
+    >
+      <v-icon left>
+        mdi-play
+      </v-icon>
+      Play
+    </v-btn>
+    <v-btn
+      elevation="1"
+      color="secondary"
+      class="mr-1"
+      @click="shuffle"
+    >
+      <v-icon left>
+        mdi-shuffle
+      </v-icon>
+      Shuffle
+    </v-btn>
+    <v-chip
+      class="float-right"
+      label
+      medium
+    >
+      <v-icon left>
+        mdi-volume-high
+      </v-icon>
+      {{ currentSong.name }}
+    </v-chip>
     <v-data-table
       hide-default-footer
       :headers="headers"
@@ -16,8 +41,14 @@
       :items-per-page="-1"
       @click:row="clicked"
     />
-    <audio ref="player" style="width: 75%; position: fixed; bottom: 0; right: 0;" controls>
-      <source :src="currentSong">
+    <audio
+      ref="player"
+      style="width: 75%; position: fixed; bottom: 0; right: 0;"
+      controls
+      preload="auto"
+      @ended="next"
+    >
+      <source :src="currentSong.path">
     </audio>
   </div>
   <div v-else>
@@ -31,13 +62,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MonkeyApi, SpecSong } from 'monkey-api'
+import { SpecSong } from 'monkey-api'
 import axios from 'axios'
+import { api } from '~/util/api'
 
 export default Vue.extend({
   async asyncData (context) {
-    const api = new MonkeyApi(undefined, 'http://localhost:8081')
-
     try {
       const res = await api.monkeyListSongs(context.route.params.artist_id, context.route.params.album_id)
 
@@ -107,26 +137,49 @@ export default Vue.extend({
       songs: [] as SpecSong[],
       loading: true,
       notFound: false,
-      // artistCount: 0
       title: 'Songs',
       artistName: 'Loading...',
       albumName: 'Loading...',
-      currentSong: '',
-      breadcrumbs: []
+      currentSong: {} as SpecSong,
+      breadcrumbs: [],
+      playing: false,
+      shuffling: false
     }
   },
   watch: {
     currentSong () {
       // @ts-ignore
       this.$refs.player!.load()
+      // @ts-ignore
+      this.$refs.player!.play()
     }
   },
   mounted () {
     this.updateTitle()
   },
   methods: {
-    clicked (row: any) {
-      this.currentSong = row.path
+    clicked (row: SpecSong) {
+      this.currentSong = row
+    },
+    next () {
+      if (this.playing) {
+        // somewhat confusingly this just plays the next song
+        this.currentSong = this.songs[this.currentSong.number!]
+      }
+
+      if (this.shuffling) {
+        this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)]
+      }
+    },
+    play () {
+      this.playing = true
+      this.shuffling = false
+      this.currentSong = this.songs[0]
+    },
+    shuffle () {
+      this.shuffling = true
+      this.playing = false
+      this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)] // random :p
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)

@@ -26,13 +26,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MonkeyApi, SpecAlbum } from 'monkey-api'
+import { SpecAlbum } from 'monkey-api'
 import axios from 'axios'
+import { api } from '~/util/api'
 
 export default Vue.extend({
   async asyncData (context) {
-    const api = new MonkeyApi(undefined, 'http://localhost:8081')
-
     try {
       const res = await api.monkeyListAlbums(context.route.params.artist_id)
 
@@ -73,7 +72,6 @@ export default Vue.extend({
     return {
       headers: [
         {
-          // text: 'Art',
           value: 'albumArt',
           sortable: false,
           width: '1%'
@@ -88,7 +86,6 @@ export default Vue.extend({
       albums: [] as SpecAlbum[],
       loading: true,
       notFound: false,
-      // artistCount: 0
       title: 'Albums',
       artistName: 'Loading...',
       breadcrumbs: []

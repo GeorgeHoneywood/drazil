@@ -46,14 +46,12 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { MonkeyApi, SpecArtist } from 'monkey-api'
+import { SpecArtist, SpecAlbum } from 'monkey-api'
 import { AxiosError } from 'axios'
-import { SpecAlbum } from '~/api-client'
+import { api } from '~/util/api'
 
 export default Vue.extend({
   asyncData () {
-    const api = new MonkeyApi(undefined, 'http://localhost:8081')
-
     return api.monkeyListArtists().then((res) => {
       return { artists: res.data.artists!, loading: false }
     }).catch((err: AxiosError) => {
@@ -105,8 +103,6 @@ export default Vue.extend({
       this.artistAlbums = []
       this.expandedArtistID = item.id
       this.loadingArtistAlbums = true
-
-      const api = new MonkeyApi(undefined, 'http://localhost:8081')
 
       this.artistAlbums = (await api.monkeyListAlbums(item.id)).data.albums!
       this.loadingArtistAlbums = false
