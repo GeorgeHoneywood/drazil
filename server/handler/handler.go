@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/JoeRourke123/Monkey/models"
 	"github.com/JoeRourke123/Monkey/spec"
@@ -85,7 +84,7 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 		}
 
 		if album.AlbumArt != "" {
-			out[i].AlbumArt = "http://" + h.HTTPRoot + "/media/" + strings.TrimPrefix(album.AlbumArt, h.MusicPath)
+			out[i].AlbumArt = h.HTTPRoot + "/media/" + album.AlbumArt
 		}
 	}
 
@@ -139,7 +138,7 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		out[i] = &spec.Song{
 			Name:   song.Name,
 			Number: song.Number,
-			Path:   "http://" + h.HTTPRoot + "/media/" + strings.TrimPrefix(song.Path, h.MusicPath),
+			Path:   h.HTTPRoot + "/media/" + song.Path,
 		}
 	}
 
@@ -147,6 +146,6 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		Songs:      out,
 		ArtistName: artistName,
 		AlbumName:  album.Name,
-		AlbumArt:   album.AlbumArt,
+		AlbumArt:   h.HTTPRoot + "/media/" + album.AlbumArt,
 	}, nil
 }

@@ -15,7 +15,8 @@ import (
 func main() {
 	s := &service.Server{
 		GRPCRoot:     "localhost:9091",
-		HTTPRoot:     "localhost:8081",
+		HTTPPort:     "localhost:8081",
+		HTTPRoot:     "http://localhost:8081",
 		MusicPath:    "/home/honeyfox/Music/",
 		DatabasePath: "./monkey.db",
 	}

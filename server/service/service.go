@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 type Server struct {
 	GRPCRoot     string
 	HTTPRoot     string
+	HTTPPort     string
 	MusicPath    string
 	DatabasePath string
 	DB           *sqlx.DB
@@ -67,7 +69,31 @@ func (s *Server) Run() error {
 	}
 
 	err = mux.HandlePath("GET", "/media/{path=**}", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		fileBytes, err := os.ReadFile(s.MusicPath + params["path"])
+		absolutePath := s.MusicPath + params["path"]
+
+		var path string
+		err := h.DB.Get(&path, `
+		SELECT path FROM
+		(
+			SELECT album_art AS path FROM album
+			UNION
+			SELECT path FROM song
+		)
+		WHERE path=$1;
+		`, params["path"])
+		if err != nil {
+			if err == sql.ErrNoRows {
+				w.WriteHeader(http.StatusNotFound)
+				log.Printf("illegal access '%s': %s", absolutePath, err.Error())
+				return
+			}
+
+			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("error finding path '%s': %s", absolutePath, err.Error())
+			return
+		}
+
+		fileBytes, err := os.ReadFile(absolutePath)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -78,5 +104,5 @@ func (s *Server) Run() error {
 		panic(err)
 	}
 
-	return http.ListenAndServe(s.HTTPRoot, cors(mux))
+	return http.ListenAndServe(s.HTTPPort, cors(mux))
 }

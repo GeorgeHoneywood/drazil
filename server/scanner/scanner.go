@@ -12,10 +12,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func FindArtists(dir string, db *sqlx.DB) error {
+func FindArtists(root string, db *sqlx.DB) error {
 	startTime := time.Now()
 
-	artist_names, err := os.ReadDir(dir)
+	artist_names, err := os.ReadDir(root)
 	if err != nil {
 		return err
 	}
@@ -30,13 +30,9 @@ func FindArtists(dir string, db *sqlx.DB) error {
 			continue
 		}
 
-		path := strings.Builder{}
-		path.WriteString(dir)
-		path.WriteString(artist_name.Name())
-
 		artist := &models.Artist{
 			Name: artist_name.Name(),
-			Path: path.String(),
+			Path: artist_name.Name(),
 		}
 
 		rows, err := tx.NamedQuery(`
@@ -50,7 +46,7 @@ func FindArtists(dir string, db *sqlx.DB) error {
 			rows.Scan(&artist.ID)
 		}
 
-		err = findAlbums(tx, path.String(), artist_name.Name(), artist)
+		err = findAlbums(tx, root, artist)
 		if err != nil {
 			return err
 		}
@@ -68,8 +64,8 @@ func FindArtists(dir string, db *sqlx.DB) error {
 	return nil
 }
 
-func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *models.Artist) error {
-	album_names, err := os.ReadDir(dir)
+func findAlbums(tx *sqlx.Tx, root string, artist *models.Artist) error {
+	album_names, err := os.ReadDir(root + artist.Path)
 	if err != nil {
 		return err
 	}
@@ -86,14 +82,14 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *models.Arti
 
 		albumName = strings.Trim(albumName, "- ")
 
-		if strings.HasPrefix(albumName, artist_name) && !strings.HasSuffix(albumName, artist_name) {
-			albumName = strings.Replace(albumName, artist_name, "", -1)
+		if strings.HasPrefix(albumName, artist.Name) && !strings.HasSuffix(albumName, artist.Name) {
+			albumName = strings.Replace(albumName, artist.Name, "", -1)
 		}
 
 		albumName = strings.Trim(albumName, "- ")
 
 		path := strings.Builder{}
-		path.WriteString(dir)
+		path.WriteString(artist.Path)
 		path.WriteString("/")
 		path.WriteString(album_name.Name())
 
@@ -105,7 +101,7 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *models.Arti
 
 		path.WriteString("/cover.jpg")
 
-		if _, err := os.Stat(path.String()); err == nil {
+		if _, err := os.Stat(root + path.String()); err == nil {
 			album.AlbumArt = path.String()
 		}
 
@@ -120,7 +116,7 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *models.Arti
 			rows.Scan(&album.ID)
 		}
 
-		err = findSongs(tx, album.Path, artist_name, albumName, album)
+		err = findSongs(tx, root, album, artist)
 		if err != nil {
 			return err
 		}
@@ -130,24 +126,25 @@ func findAlbums(tx *sqlx.Tx, dir string, artist_name string, artist *models.Arti
 	return nil
 }
 
-func findSongs(tx *sqlx.Tx, dir string, artist_name string, album_name string, album *models.Album) error {
-	song_names, err := os.ReadDir(dir)
+func findSongs(tx *sqlx.Tx, root string, album *models.Album, artist *models.Artist) error {
+	song_names, err := os.ReadDir(root + album.Path)
 	if err != nil {
 		return err
 	}
 
-	for _, song_name := range song_names {
+	for i, song_name := range song_names {
 		if song_name.IsDir() {
-			// this must be a Disc 01/CD 01 folder or so
-			builder := strings.Builder{}
-			builder.WriteString(dir)
-			builder.WriteString("/")
-			builder.WriteString(song_name.Name())
+			// // this must be a Disc 01/CD 01 folder or so
+			// builder := strings.Builder{}
+			// builder.WriteString(album.Path)
+			// builder.WriteString("/")
+			// builder.WriteString(song_name.Name())
+			// album.Path = builder.String()
 
-			err := findSongs(tx, builder.String(), artist_name, album_name, album)
-			if err != nil {
-				return err
-			}
+			// err := findSongs(tx, album, artist)
+			// if err != nil {
+			// 	return err
+			// }
 			continue
 		}
 		if strings.HasPrefix(song_name.Name(), ".") {
@@ -177,21 +174,21 @@ func findSongs(tx *sqlx.Tx, dir string, artist_name string, album_name string, a
 			if !strings.HasSuffix(trackName, album.Name) {
 				trackName = strings.Replace(trackName, album.Name, "", -1)
 			}
-			if !strings.HasSuffix(trackName, artist_name) {
-				trackName = strings.Replace(trackName, artist_name, "", -1)
+			if !strings.HasSuffix(trackName, artist.Name) {
+				trackName = strings.Replace(trackName, album.Name, "", -1)
 			}
 
 			trackName = strings.Trim(trackName, "-. ")
 		}
 
 		path := strings.Builder{}
-		path.WriteString(dir)
+		path.WriteString(album.Path)
 		path.WriteString("/")
 		path.WriteString(song_name.Name())
 
 		trackNumberInt, err := strconv.Atoi(trackNumber)
 		if err != nil {
-			trackNumberInt = -1
+			trackNumberInt = i + 1
 		}
 
 		song := &models.Song{
