@@ -1,39 +1,47 @@
 <template>
   <div v-if="!notFound">
     <v-breadcrumbs :items="breadcrumbs" />
-    <v-btn
-      elevation="1"
-      color="primary"
-      class="mr-1"
-      @click="play"
-    >
-      <v-icon left>
-        mdi-play
-      </v-icon>
-      Play
-    </v-btn>
-    <v-btn
-      elevation="1"
-      color="secondary"
-      class="mr-1"
-      @click="shuffle"
-    >
-      <v-icon left>
-        mdi-shuffle
-      </v-icon>
-      Shuffle
-    </v-btn>
-    <v-chip
-      class="float-right"
-      label
-      medium
-    >
-      <v-icon left>
-        mdi-volume-high
-      </v-icon>
-      {{ currentSong.name }}
-    </v-chip>
+    <div class="mb-2">
+      <v-btn
+        elevation="1"
+        color="primary"
+        class="mr-1"
+        @click="play"
+      >
+        <v-icon left>
+          mdi-play
+        </v-icon>
+        Play
+      </v-btn>
+      <v-btn
+        elevation="1"
+        color="secondary"
+        class="mr-1"
+        @click="shuffle"
+      >
+        <v-icon left>
+          mdi-shuffle
+        </v-icon>
+        Shuffle
+      </v-btn>
+      <v-img
+        class="float-right rounded"
+        :src="albumArt"
+        width="40px"
+      />
+      <v-chip
+        class="float-right"
+        label
+        medium
+      >
+        <v-icon left>
+          mdi-volume-high
+        </v-icon>
+        {{ currentSong.name }}
+      </v-chip>
+    </div>
     <v-data-table
+      class="row-pointer"
       hide-default-footer
       :headers="headers"
       :items="songs"
@@ -42,8 +50,9 @@
       @click:row="clicked"
     />
     <audio
+      v-show="currentSong.path"
       ref="player"
-      style="width: 75%; position: fixed; bottom: 0; right: 0;"
+      style="position: fixed; bottom: 0; right: 0;"
       controls
       preload="auto"
       @ended="next"
@@ -75,6 +84,7 @@ export default Vue.extend({
         songs: res.data.songs!,
         artistName: res.data.artistName!,
         albumName: res.data.albumName!,
+        albumArt: res.data.albumArt!,
         loading: false,
         breadcrumbs: [
           {
@@ -140,6 +150,7 @@ export default Vue.extend({
       title: 'Songs',
       artistName: 'Loading...',
       albumName: 'Loading...',
+      albumArt: '',
       currentSong: {} as SpecSong,
       breadcrumbs: [],
       playing: false,
@@ -187,3 +198,9 @@ export default Vue.extend({
   }
 })
 </script>
+
+<style lang="css" scoped>
+.row-pointer >>> tbody tr :hover {
+  cursor: pointer;
+}
+</style>

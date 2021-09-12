@@ -2,6 +2,7 @@
   <div v-if="!notFound">
     <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
+      class="row-pointer"
       :headers="headers"
       :items="albums"
       :loading="loading"
@@ -110,3 +111,9 @@ export default Vue.extend({
   }
 })
 </script>
+
+<style lang="css" scoped>
+.row-pointer >>> tbody tr :hover {
+  cursor: pointer;
+}
+</style>

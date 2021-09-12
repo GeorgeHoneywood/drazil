@@ -2,6 +2,7 @@
   <div>
     <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
+      class="row-pointer"
       :headers="headers"
       :items="artists"
       :loading="loading"
@@ -120,8 +121,14 @@ export default Vue.extend({
 })
 </script>
 
-<style>
+<style lang="css">
 .v-data-table__expanded.v-data-table__expanded__content {
   box-shadow: none !important;
+}
+</style>
+
+<style lang="css" scoped>
+.row-pointer >>> tbody tr :hover {
+  cursor: pointer;
 }
 </style>
