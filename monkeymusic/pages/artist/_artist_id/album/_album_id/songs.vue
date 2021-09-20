@@ -57,7 +57,7 @@
       preload="auto"
       @ended="next"
     >
-      <source :src="currentSong.path">
+      <source :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${$route.params.album_id}/song/${currentSong.id}/media`">
     </audio>
   </div>
   <div v-else>

@@ -16,6 +16,13 @@ export default {
     ]
   },
 
+  target: 'static',
+
+  generate: {
+    fallback: '404.html',
+    exclude: ['/artists', /^\/artist/]
+  },
+
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
   ],

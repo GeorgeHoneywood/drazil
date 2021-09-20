@@ -12,7 +12,7 @@
       @click:row="clicked"
     >
       <template #[`item.albumArt`]="{ item }">
-        <v-img :src="item.albumArt" dark class="rounded" width="40px" />
+        <v-img :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${item.id}/art`" dark class="rounded" width="40px" />
       </template>
     </v-data-table>
   </div>

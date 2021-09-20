@@ -82,15 +82,12 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 			Id:   album.ID,
 			Name: album.Name,
 		}
-
-		if album.AlbumArt != "" {
-			out[i].AlbumArt = h.HTTPRoot + "/media/" + album.AlbumArt
-		}
 	}
 
 	return &spec.AlbumsReply{
 		Albums:     out,
 		ArtistName: artistName,
+		ArtistId:   in.ArtistId,
 	}, nil
 }
 
@@ -138,7 +135,7 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		out[i] = &spec.Song{
 			Name:   song.Name,
 			Number: song.Number,
-			Path:   h.HTTPRoot + "/media/" + song.Path,
+			Id:     song.ID,
 		}
 	}
 
@@ -146,6 +143,5 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		Songs:      out,
 		ArtistName: artistName,
 		AlbumName:  album.Name,
-		AlbumArt:   h.HTTPRoot + "/media/" + album.AlbumArt,
 	}, nil
 }

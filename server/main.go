@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"log"
 	"os"
@@ -12,13 +13,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+//go:embed dist/*
+
+var static embed.FS
+
 func main() {
 	s := &service.Server{
 		GRPCRoot:     "localhost:9091",
-		HTTPPort:     "localhost:8081",
-		HTTPRoot:     "http://localhost:8081",
+		HTTPPort:     "localhost:4444",
+		HTTPRoot:     "http://localhost:4444",
 		MusicPath:    "/home/honeyfox/Music/",
 		DatabasePath: "./monkey.db",
+		StaticFS:     static,
 	}
 
 	os.Remove(s.DatabasePath)

@@ -165,6 +165,10 @@
         },
         "artistName": {
           "type": "string"
+        },
+        "artistId": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -201,6 +205,10 @@
     "specSong": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
         "name": {
           "type": "string"
         },

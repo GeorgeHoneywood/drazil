@@ -108,6 +108,12 @@ export interface SpecAlbumsReply {
      * @memberof SpecAlbumsReply
      */
     artistName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAlbumsReply
+     */
+    artistId?: string;
 }
 /**
  * 
@@ -159,6 +165,12 @@ export interface SpecArtistsReply {
  * @interface SpecSong
  */
 export interface SpecSong {
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSong
+     */
+    id?: string;
     /**
      * 
      * @type {string}

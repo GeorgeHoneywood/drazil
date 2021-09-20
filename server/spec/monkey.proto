@@ -45,6 +45,7 @@ message AlbumsRequest {
 message AlbumsReply {
   repeated Album albums = 1;
   string artist_name = 2;
+  int64 artist_id = 3;
 }
 
 
@@ -67,6 +68,7 @@ message SongsReply {
 }
 
 message Song {
+  int64 id = 4;
   string name = 1;
   int32 number = 2;
   string path = 3;

@@ -36,7 +36,7 @@
             @click:row="showAlbum"
           >
             <template #[`item.albumArt`]="{ item }" style="width: 1%">
-              <v-img :src="item.albumArt" dark class="rounded" width="32px" />
+              <v-img :src="`http://localhost:4444/v1/artist/${expandedArtistID}/album/${item.id}/art`" dark class="rounded" width="32px" />
             </template>
           </v-data-table>
         </td>
