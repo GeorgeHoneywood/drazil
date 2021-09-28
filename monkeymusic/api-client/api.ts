@@ -82,12 +82,6 @@ export interface SpecAlbum {
      * @type {string}
      * @memberof SpecAlbum
      */
-    albumArt?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SpecAlbum
-     */
     name?: string;
 }
 /**
@@ -188,7 +182,19 @@ export interface SpecSong {
      * @type {string}
      * @memberof SpecSong
      */
-    path?: string;
+    lyrics?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecSong
+     */
+    fileType?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpecSong
+     */
+    year?: number;
 }
 /**
  * 
@@ -196,12 +202,6 @@ export interface SpecSong {
  * @interface SpecSongsReply
  */
 export interface SpecSongsReply {
-    /**
-     * 
-     * @type {string}
-     * @memberof SpecSongsReply
-     */
-    albumArt?: string;
     /**
      * 
      * @type {string}

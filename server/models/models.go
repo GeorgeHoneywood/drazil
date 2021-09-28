@@ -1,6 +1,8 @@
 package models
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+)
 
 type Artist struct {
 	ID   int64
@@ -17,11 +19,14 @@ type Album struct {
 }
 
 type Song struct {
-	ID      int64
-	AlbumID int64 `db:"album_id"`
-	Number  int32
-	Name    string
-	Path    string
+	ID       int64
+	AlbumID  int64 `db:"album_id"`
+	Number   int32
+	Name     string
+	Path     string
+	Lyrics   string
+	FileType string `db:"file_type"`
+	Year     int
 }
 
 func SetupTables(db *sqlx.DB) error {
@@ -52,6 +57,9 @@ func SetupTables(db *sqlx.DB) error {
 		name VARCHAR NOT NULL,
 		album_id INTEGER NOT NULL,
 		path VARCHAR NOT NULL,
+		lyrics VARCHAR,
+		file_type VARCHAR NOT NULL,
+		year INTEGER,
 		FOREIGN KEY(album_id) REFERENCES album(id)
 	);`)
 	if err != nil {

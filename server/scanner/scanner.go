@@ -10,6 +10,7 @@ import (
 
 	"github.com/JoeRourke123/Monkey/models"
 	"github.com/jmoiron/sqlx"
+	"github.com/wader/tag"
 )
 
 func FindArtists(root string, db *sqlx.DB) error {
@@ -191,16 +192,34 @@ func findSongs(tx *sqlx.Tx, root string, album *models.Album, artist *models.Art
 			trackNumberInt = i + 1
 		}
 
+		f, err := os.Open(root + path.String())
+
+		if err != nil {
+			panic(err)
+		}
+
+		meta, err := tag.ReadFrom(f)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		song := &models.Song{
+			AlbumID: album.ID,
 			Number:  int32(trackNumberInt),
 			Name:    trackName,
-			AlbumID: album.ID,
 			Path:    path.String(),
 		}
 
+		if meta != nil {
+			song.Lyrics = meta.Lyrics()
+			song.FileType = string(meta.FileType())
+			song.Year = meta.Year()
+		}
+
 		_, err = tx.NamedExec(`
-		INSERT INTO song (album_id, number, name, path)
-        VALUES (:album_id, :number, :name, :path)
+		INSERT INTO song (album_id, number, name, path, lyrics, file_type, year)
+        VALUES (:album_id, :number, :name, :path, :lyrics, :file_type, :year)
 		RETURNING id;`, song)
 		if err != nil {
 			return err

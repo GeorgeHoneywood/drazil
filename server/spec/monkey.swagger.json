@@ -146,9 +146,6 @@
           "type": "string",
           "format": "int64"
         },
-        "albumArt": {
-          "type": "string"
-        },
         "name": {
           "type": "string"
         }
@@ -216,17 +213,21 @@
           "type": "integer",
           "format": "int32"
         },
-        "path": {
+        "lyrics": {
           "type": "string"
+        },
+        "fileType": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
     "specSongsReply": {
       "type": "object",
       "properties": {
-        "albumArt": {
-          "type": "string"
-        },
         "artistName": {
           "type": "string"
         },

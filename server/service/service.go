@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"time"
 
 	"github.com/JoeRourke123/Monkey/handler"
 	"github.com/JoeRourke123/Monkey/spec"
@@ -66,7 +65,7 @@ func (s *Server) FileServerWithCustom404(fs http.FileSystem) http.Handler {
 	})
 }
 
-func (s *Server) ServeApp() error {
+func (s *Server) NewAppMux() (*http.ServeMux, error) {
 	distRoot, err := fs.Sub(s.StaticFS, "dist")
 	if err != nil {
 		log.Fatal(err)
@@ -75,14 +74,7 @@ func (s *Server) ServeApp() error {
 	appMux := http.NewServeMux()
 	appMux.Handle("/", http.StripPrefix("/", s.FileServerWithCustom404(http.FS(distRoot))))
 
-	appServer := &http.Server{
-		Addr:         ":3001",
-		Handler:      appMux,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
-
-	return appServer.ListenAndServe()
+	return appMux, nil
 }
 
 func (s *Server) Run() error {
@@ -111,86 +103,25 @@ func (s *Server) Run() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	mux := runtime.NewServeMux()
+	apiMux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err = spec.RegisterMonkeyHandlerFromEndpoint(ctx, mux, s.GRPCRoot, opts)
+	err = spec.RegisterMonkeyHandlerFromEndpoint(ctx, apiMux, s.GRPCRoot, opts)
 	if err != nil {
 		return err
 	}
 
-	s.customRoutes(mux, h)
+	s.customRoutes(apiMux, h)
 
-	go func() {
-		err := s.ServeApp()
-		fmt.Printf("err: %v\n", err)
-	}()
+	appMux, _ := s.NewAppMux()
 
-	return http.ListenAndServe(s.HTTPPort, cors(mux))
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/", appMux)
+	rootMux.Handle("/v1/", apiMux)
+
+	return http.ListenAndServe(s.HTTPPort, cors(rootMux))
 }
 
 func (s *Server) customRoutes(mux *runtime.ServeMux, h *handler.Handler) {
-	// mux.HandlePath("GET", "/app/{path=**}", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	// 	path := params["path"]
-
-	// 	if path == "" {
-	// 		path = "index.html"
-	// 	}
-
-	// 	fileBytes, err := fs.ReadFile(s.StaticFS, "dist/"+path) // FIXME: can escape here
-
-	// 	if err != nil {
-	// 		fmt.Printf("err: %v\n", err)
-	// 		fileNotFoundBytes, err := fs.ReadFile(s.StaticFS, "dist/404.html")
-
-	// 		if err != nil {
-	// 			fmt.Printf("err: %v\n", err)
-	// 			w.WriteHeader(http.StatusInternalServerError)
-	// 			return
-	// 		}
-
-	// 		w.Write(fileNotFoundBytes)
-	// 		return
-	// 	}
-
-	// 	w.Write(fileBytes)
-	// })
-
-	// err = mux.HandlePath("GET", "/media/{path=**}", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-	// 	absolutePath := s.MusicPath + params["path"]
-
-	// 	var path string
-	// 	err := h.DB.Get(&path, `
-	// 	SELECT path FROM
-	// 	(
-	// 		SELECT album_art AS path FROM album
-	// 		UNION
-	// 		SELECT path FROM song
-	// 	)
-	// 	WHERE path=$1;
-	// 	`, params["path"])
-	// 	if err != nil {
-	// 		if err == sql.ErrNoRows {
-	// 			w.WriteHeader(http.StatusNotFound)
-	// 			log.Printf("illegal access '%s': %s", absolutePath, err.Error())
-	// 			return
-	// 		}
-
-	// 		w.WriteHeader(http.StatusBadRequest)
-	// 		log.Printf("error finding path '%s': %s", absolutePath, err.Error())
-	// 		return
-	// 	}
-
-	// 	fileBytes, err := os.ReadFile(absolutePath)
-	// 	if err != nil {
-	// 		w.WriteHeader(http.StatusNotFound)
-	// 	}
-
-	// 	w.Write(fileBytes)
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	err := mux.HandlePath("GET",
 		"/v1/artist/{artist_id}/album/{album_id}/art",
 		func(w http.ResponseWriter, r *http.Request, params map[string]string) {

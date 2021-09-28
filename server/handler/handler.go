@@ -133,9 +133,12 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 	out := make([]*spec.Song, len(songs))
 	for i, song := range songs {
 		out[i] = &spec.Song{
-			Name:   song.Name,
-			Number: song.Number,
-			Id:     song.ID,
+			Id:       song.ID,
+			Name:     song.Name,
+			Number:   song.Number,
+			Lyrics:   song.Lyrics,
+			FileType: song.FileType,
+			Year:     int32(song.Year),
 		}
 	}
 
