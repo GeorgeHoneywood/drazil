@@ -3,6 +3,7 @@
     <v-breadcrumbs :items="breadcrumbs" />
     <v-data-table
       class="row-pointer"
+      :mobile-breakpoint="0"
       :headers="headers"
       :items="artists"
       :loading="loading"

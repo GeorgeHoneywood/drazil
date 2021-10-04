@@ -152,7 +152,7 @@ func findSongs(tx *sqlx.Tx, root string, album *models.Album, artist *models.Art
 			continue
 		}
 
-		if !(strings.HasSuffix(song_name.Name(), ".mp3") || strings.HasSuffix(song_name.Name(), ".ogg")) {
+		if !(strings.HasSuffix(song_name.Name(), ".mp3") || strings.HasSuffix(song_name.Name(), ".ogg") || strings.HasSuffix(song_name.Name(), ".opus")) {
 			continue
 		}
 

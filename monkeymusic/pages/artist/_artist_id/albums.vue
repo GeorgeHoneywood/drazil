@@ -6,6 +6,7 @@
       :headers="headers"
       :items="albums"
       :loading="loading"
+      :mobile-breakpoint="0"
       :footer-props="{
         'items-per-page-options': [10, 25, 50]
       }"

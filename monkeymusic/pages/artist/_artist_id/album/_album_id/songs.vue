@@ -48,15 +48,20 @@
       :loading="loading"
       :items-per-page="-1"
       :item-class="itemClass"
+      mobile-breakpoint="0"
       @click:row="clicked"
     >
       <template #[`item.playing`]="{ item }">
-        <v-icon
+        <template
           v-if="currentSong.id == item.id"
-          style="color: white"
         >
-          mdi-play
-        </v-icon>
+          <v-icon v-if="!playState" style="color: white">
+            mdi-pause
+          </v-icon>
+          <v-icon v-else style="color: white">
+            mdi-play
+          </v-icon>
+        </template>
       </template>
     </v-data-table>
     <audio
@@ -64,16 +69,16 @@
       ref="player"
       style="position: fixed; bottom: 0; right: 0; display: block"
 
-      preload="auto"
       @ended="next"
       @timeupdate="timeUpdate"
       @durationchange="durationUpdate"
+      @loadedmetadata="durationUpdate"
     >
       <source v-if="currentSong.id" :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${$route.params.album_id}/song/${currentSong.id}/media`">
     </audio>
     <div class="d-flex mt-2" style="position: sticky; bottom: 10px">
       <v-btn
-        v-if="$refs.player"
+        :disabled="!$refs.player"
         elevation="1"
         color="secondary"
         class="mr-1"
@@ -106,7 +111,16 @@
         step="0.1"
         class="mx-2 px-2 white"
         @end="scrobble"
+        @start="scrobbleStart"
       />
+
+      <v-chip
+        v-if="currentSong.name"
+        label
+        medium
+      >
+        {{ currentTime }} / {{ duration }}
+      </v-chip>
     </div>
   </div>
   <div v-else>
@@ -123,6 +137,12 @@ import Vue from 'vue'
 import { SpecSong } from 'monkey-api'
 import axios from 'axios'
 import { api } from '~/util/api'
+
+// interface $refs {
+//   ul: HTMLElement
+// }
+
+// (Vue as VueConstructor<Vue & { $refs: $refs }>)
 
 export default Vue.extend({
   async asyncData (context) {
@@ -212,15 +232,19 @@ export default Vue.extend({
       playState: true,
       currentTime: 0,
       duration: 0,
-      percentComplete: 0
+      percentComplete: 0,
+      scrobbling: false
     }
   },
   watch: {
     currentSong () {
-      // @ts-ignore
-      this.$refs.player!.load()
-      // @ts-ignore
-      this.$refs.player!.play()
+      if (!this.$refs.player) {
+        return
+      }
+      const player = this.$refs.player as HTMLAudioElement
+
+      player.load()
+      player.play()
     }
   },
   mounted () {
@@ -246,14 +270,11 @@ export default Vue.extend({
       this.currentSong = this.songs[0]
     },
     toggle () {
-      // @ts-ignore
-      if (this.$refs.player!.paused) {
-        // @ts-ignore
-         this.$refs.player!.play()
-         this.playState = true
+      if ((this.$refs.player as HTMLAudioElement).paused) {
+        (this.$refs.player as HTMLAudioElement).play()
+        this.playState = true
       } else {
-        // @ts-ignore
-        this.$refs.player!.pause()
+        (this.$refs.player as HTMLAudioElement).pause()
         this.playState = false
       }
     },
@@ -270,17 +291,24 @@ export default Vue.extend({
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''
     },
     timeUpdate () {
-      // @ts-ignore
-      this.currentTime = this.$refs.player.currentTime
+      if (this.scrobbling) {
+        return
+      }
+
+      this.currentTime = (this.$refs.player as HTMLAudioElement).currentTime
       this.percentComplete = (this.currentTime / this.duration) * 100
+      // console.log('e', this.currentTime, this.percentComplete)
     },
     durationUpdate () {
-      // @ts-ignore
-      this.duration = this.$refs.player.duration
+      console.log('duration', (this.$refs.player as HTMLAudioElement).duration, 'ready state', (this.$refs.player as HTMLAudioElement).readyState)
+      this.duration = (this.$refs.player as HTMLAudioElement).duration
     },
     scrobble () {
-      // @ts-ignore
-      this.$refs.player.currentTime = (this.percentComplete / 100) * this.$refs.player.duration
+      (this.$refs.player as HTMLAudioElement).currentTime = (this.percentComplete / 100) * (this.$refs.player as HTMLAudioElement).duration
+      this.scrobbling = false
+    },
+    scrobbleStart () {
+      this.scrobbling = true
     }
 
   }

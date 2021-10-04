@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 
 	"github.com/JoeRourke123/Monkey/handler"
 	"github.com/JoeRourke123/Monkey/spec"
@@ -182,6 +183,8 @@ func (s *Server) customRoutes(mux *runtime.ServeMux, h *handler.Handler) {
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
 			}
+
+			w.Header().Set("Content-Length", strconv.FormatInt(int64(len(fileBytes)), 10))
 
 			w.Write(fileBytes)
 		})
