@@ -261,7 +261,15 @@ export default Vue.extend({
         return
       }
 
-      this.currentSong = this.songs[this.currentSong.number!]
+      const nextSong = this.songs[this.currentSong.number!]
+
+      if (!nextSong) {
+        this.playState = false
+        this.playing = false
+        return
+      }
+
+      this.currentSong = nextSong
     },
     play () {
       this.playState = true

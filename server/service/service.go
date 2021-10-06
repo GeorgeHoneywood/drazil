@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 
 	"github.com/JoeRourke123/Monkey/handler"
 	"github.com/JoeRourke123/Monkey/spec"
@@ -179,14 +178,17 @@ func (s *Server) customRoutes(mux *runtime.ServeMux, h *handler.Handler) {
 
 			absolutePath := s.MusicPath + path
 
-			fileBytes, err := os.ReadFile(absolutePath)
+			file, err := os.Open(absolutePath)
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
 			}
 
-			w.Header().Set("Content-Length", strconv.FormatInt(int64(len(fileBytes)), 10))
+			info, err := file.Stat()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 
-			w.Write(fileBytes)
+			http.ServeContent(w, r, absolutePath, info.ModTime(), file)
 		})
 	if err != nil {
 		panic(err)
