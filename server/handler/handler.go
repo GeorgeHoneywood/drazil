@@ -16,14 +16,13 @@ import (
 type Handler struct {
 	spec.UnimplementedMonkeyServer
 	DB        *sqlx.DB
-	HTTPRoot  string
 	MusicPath string
 }
 
 func (h *Handler) ListArtists(ctx context.Context, in *spec.ArtistsRequest) (*spec.ArtistsReply, error) {
 	artists := []models.Artist{}
 	err := h.DB.Select(&artists,
-		`SELECT * FROM artist;`)
+		`SELECT * FROM artist ORDER BY name;`)
 	if err != nil {
 		log.Print(err)
 	}
@@ -55,7 +54,8 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 	albums := []models.Album{}
 	err := h.DB.Select(&albums,
 		`SELECT * FROM album 
-		WHERE artist_id=$1;`,
+		WHERE artist_id=$1
+		ORDER BY name;`,
 		in.ArtistId)
 	if err != nil {
 		log.Print(err)

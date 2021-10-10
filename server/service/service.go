@@ -16,17 +16,18 @@ import (
 	"github.com/JoeRourke123/Monkey/spec"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
 	GRPCRoot     string
-	HTTPRoot     string
 	HTTPPort     string
 	MusicPath    string
 	DatabasePath string
 	DB           *sqlx.DB
 	StaticFS     embed.FS
+	Log          *zap.Logger
 }
 
 func cors(h http.Handler) http.Handler {
@@ -87,7 +88,6 @@ func (s *Server) Run() error {
 
 	h := &handler.Handler{
 		DB:        s.DB,
-		HTTPRoot:  s.HTTPRoot,
 		MusicPath: s.MusicPath,
 	}
 
