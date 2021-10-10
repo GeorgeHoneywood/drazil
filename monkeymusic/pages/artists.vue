@@ -37,7 +37,12 @@
             @click:row="showAlbum"
           >
             <template #[`item.albumArt`]="{ item }" style="width: 1%">
-              <v-img :src="`http://localhost:4444/v1/artist/${expandedArtistID}/album/${item.id}/art`" dark class="rounded" width="32px" />
+              <v-img
+                :src="getAlbumArtLink(expandedArtistID, item.id)"
+                dark
+                class="rounded"
+                width="32px"
+              />
             </template>
           </v-data-table>
         </td>
@@ -50,7 +55,7 @@
 import Vue from 'vue'
 import { SpecArtist, SpecAlbum } from 'monkey-api'
 import { AxiosError } from 'axios'
-import { api } from '~/util/api'
+import { api, getAlbumArtLink } from '~/util/api'
 
 export default Vue.extend({
   asyncData () {
@@ -117,7 +122,8 @@ export default Vue.extend({
           album_id: row.id
         }
       })
-    }
+    },
+    getAlbumArtLink
   }
 })
 </script>

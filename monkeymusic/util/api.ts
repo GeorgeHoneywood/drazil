@@ -2,8 +2,14 @@ import { MonkeyApi, Configuration } from 'monkey-api'
 
 const config = new Configuration({})
 
-export const api = new MonkeyApi(config, 'http://localhost:4444')
+export const apiBase = 'http://192.168.1.169:4444'
+
+export const api = new MonkeyApi(config, apiBase)
 
 export const getSongLink = function (artistID: string, albumID: string, songID: string) {
-  return `http://localhost:4444/v1/artist/${artistID}/album/${albumID}/song/${songID}/media`
+  return `${apiBase}/v1/artist/${artistID}/album/${albumID}/song/${songID}/media`
+}
+
+export const getAlbumArtLink = function (artistID: string, albumID: string) {
+  return `${apiBase}/v1/artist/${artistID}/album/${albumID}/art`
 }

@@ -13,7 +13,7 @@
       @click:row="clicked"
     >
       <template #[`item.albumArt`]="{ item }">
-        <v-img :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${item.id}/art`" dark class="rounded" width="40px" />
+        <v-img :src="getAlbumArtLink($route.params.artist_id, item.id)" dark class="rounded" width="40px" />
       </template>
     </v-data-table>
   </div>
@@ -30,7 +30,7 @@
 import Vue from 'vue'
 import { SpecAlbum } from 'monkey-api'
 import axios from 'axios'
-import { api } from '~/util/api'
+import { api, getAlbumArtLink } from '~/util/api'
 
 export default Vue.extend({
   async asyncData (context) {
@@ -108,7 +108,8 @@ export default Vue.extend({
     },
     updateTitle () {
       this.$nuxt.$emit('updateTitle', this.title)
-    }
+    },
+    getAlbumArtLink
   }
 })
 </script>

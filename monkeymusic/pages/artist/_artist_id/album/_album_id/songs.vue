@@ -1,11 +1,11 @@
 <template>
   <div v-if="!notFound">
-    <v-breadcrumbs :items="breadcrumbs" />
+    <v-breadcrumbs compact :items="breadcrumbs" />
     <div class="d-flex mb-2">
       <v-btn
         elevation="1"
         color="primary"
-        class="mr-2 ml-4"
+        class="mr-2"
         @click="play"
       >
         <v-icon>
@@ -27,6 +27,7 @@
         v-if="currentSong.name"
         label
         medium
+        class="ml-2"
       >
         <v-icon left>
           mdi-volume-high
@@ -35,7 +36,7 @@
       </v-chip>
       <v-img
         class="ml-2 rounded"
-        :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${$route.params.album_id}/art`"
+        :src="getAlbumArtLink($route.params.artist_id,$route.params.album_id)"
         max-width="40px"
         max-height="40px"
       />
@@ -74,34 +75,13 @@
       @durationchange="durationUpdate"
       @loadedmetadata="durationUpdate"
     >
-      <source v-if="currentSong.id" :src="`http://localhost:4444/v1/artist/${$route.params.artist_id}/album/${$route.params.album_id}/song/${currentSong.id}/media`">
+      <source
+        v-if="currentSong.id"
+        :src="getSongLink($route.params.artist_id,
+                          $route.params.album_id, currentSong.id)"
+      >
     </audio>
-    <div class="d-flex mt-2" style="position: sticky; bottom: 10px">
-      <v-btn
-        :disabled="!$refs.player"
-        elevation="1"
-        color="secondary"
-        class="mr-1"
-        @click="toggle"
-      >
-        <v-icon v-if="playState">
-          mdi-pause
-        </v-icon>
-        <v-icon v-else>
-          mdi-play
-        </v-icon>
-      </v-btn>
-      <v-btn
-        elevation="1"
-        color="secondary"
-        class=""
-        @click="next"
-      >
-        <v-icon>
-          mdi-skip-next
-        </v-icon>
-      </v-btn>
-
+    <div class="mt-2 white" style="position: sticky; bottom: 0px; padding-bottom: 10px;">
       <v-slider
         v-model="percentComplete"
         :hide-details="true"
@@ -109,18 +89,43 @@
         max="100"
         min="0"
         step="0.1"
-        class="mx-2 px-2 white"
         @end="scrobble"
         @start="scrobbleStart"
       />
+      <div class="mt-2 d-flex">
+        <v-btn
+          :disabled="!$refs.player"
+          elevation="1"
+          color="secondary"
+          class="mr-1"
+          @click="toggle"
+        >
+          <v-icon v-if="playState">
+            mdi-pause
+          </v-icon>
+          <v-icon v-else>
+            mdi-play
+          </v-icon>
+        </v-btn>
+        <v-btn
+          elevation="1"
+          color="secondary"
+          class=""
+          @click="next"
+        >
+          <v-icon>
+            mdi-skip-next
+          </v-icon>
+        </v-btn>
 
-      <v-chip
-        v-if="currentSong.name"
-        label
-        medium
-      >
-        {{ currentTime }} / {{ duration }}
-      </v-chip>
+        <v-chip
+          class="ml-auto"
+          label
+          medium
+        >
+          {{ fmtMSS(currentTime) }} / {{ fmtMSS(duration) }}
+        </v-chip>
+      </div>
     </div>
   </div>
   <div v-else>
@@ -136,13 +141,17 @@
 import Vue from 'vue'
 import { SpecSong } from 'monkey-api'
 import axios from 'axios'
-import { api } from '~/util/api'
+import { api, getSongLink, getAlbumArtLink } from '~/util/api'
 
 // interface $refs {
 //   ul: HTMLElement
 // }
 
 // (Vue as VueConstructor<Vue & { $refs: $refs }>)
+
+function fmtMSS (s: number): string {
+  return ((s - (s %= 60)) / 60 + (s > 9 ? ':' : ':0') + s).split('.')[0]
+}
 
 export default Vue.extend({
   async asyncData (context) {
@@ -243,6 +252,7 @@ export default Vue.extend({
       }
       const player = this.$refs.player as HTMLAudioElement
 
+      player.volume = 0.05
       player.load()
       player.play()
     }
@@ -266,6 +276,7 @@ export default Vue.extend({
       if (!nextSong) {
         this.playState = false
         this.playing = false
+        this.currentSong = {}
         return
       }
 
@@ -299,16 +310,14 @@ export default Vue.extend({
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''
     },
     timeUpdate () {
-      if (this.scrobbling) {
+      if (this.scrobbling || !this.$refs.player) {
         return
       }
 
       this.currentTime = (this.$refs.player as HTMLAudioElement).currentTime
       this.percentComplete = (this.currentTime / this.duration) * 100
-      // console.log('e', this.currentTime, this.percentComplete)
     },
     durationUpdate () {
-      console.log('duration', (this.$refs.player as HTMLAudioElement).duration, 'ready state', (this.$refs.player as HTMLAudioElement).readyState)
       this.duration = (this.$refs.player as HTMLAudioElement).duration
     },
     scrobble () {
@@ -317,8 +326,10 @@ export default Vue.extend({
     },
     scrobbleStart () {
       this.scrobbling = true
-    }
-
+    },
+    fmtMSS,
+    getSongLink,
+    getAlbumArtLink
   }
 })
 </script>
