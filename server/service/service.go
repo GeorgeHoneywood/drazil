@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/JoeRourke123/Monkey/handler"
 	"github.com/JoeRourke123/Monkey/spec"
@@ -78,6 +79,14 @@ func (s *Server) NewAppMux() (*http.ServeMux, error) {
 	return appMux, nil
 }
 
+func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, req)
+		s.Log.Debug("http request", zap.String("method", req.Method), zap.String("uri", req.RequestURI), zap.Duration("latency", time.Since(start)))
+	})
+}
+
 func (s *Server) Run() error {
 	lis, err := net.Listen("tcp", s.GRPCRoot)
 	if err != nil {
@@ -89,6 +98,7 @@ func (s *Server) Run() error {
 	h := &handler.Handler{
 		DB:        s.DB,
 		MusicPath: s.MusicPath,
+		Log:       s.Log,
 	}
 
 	spec.RegisterMonkeyServer(grpcServer, h)
@@ -118,7 +128,11 @@ func (s *Server) Run() error {
 	rootMux.Handle("/", appMux)
 	rootMux.Handle("/v1/", apiMux)
 
-	return http.ListenAndServe(s.HTTPPort, cors(rootMux))
+	loggingMiddleware := s.loggingMiddleware(rootMux)
+	corsMiddleware := cors(loggingMiddleware)
+
+	s.Log.Info("serving", zap.String("http", s.HTTPPort))
+	return http.ListenAndServe(s.HTTPPort, corsMiddleware)
 }
 
 func (s *Server) customRoutes(mux *runtime.ServeMux, h *handler.Handler) {

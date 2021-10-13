@@ -23,6 +23,7 @@
         >
           <v-data-table
             hide-default-footer
+            :mobile-breakpoint="0"
             :items="artistAlbums"
             :loading="loadingArtistAlbums"
             :headers="[{

@@ -65,22 +65,6 @@
         </template>
       </template>
     </v-data-table>
-    <audio
-      v-show="currentSong.id"
-      ref="player"
-      style="position: fixed; bottom: 0; right: 0; display: block"
-
-      @ended="next"
-      @timeupdate="timeUpdate"
-      @durationchange="durationUpdate"
-      @loadedmetadata="durationUpdate"
-    >
-      <source
-        v-if="currentSong.id"
-        :src="getSongLink($route.params.artist_id,
-                          $route.params.album_id, currentSong.id)"
-      >
-    </audio>
     <div class="mt-2 white" style="position: sticky; bottom: 0px; padding-bottom: 10px;">
       <v-slider
         v-model="percentComplete"
@@ -94,7 +78,7 @@
       />
       <div class="mt-2 d-flex">
         <v-btn
-          :disabled="!$refs.player"
+          :disabled="false"
           elevation="1"
           color="secondary"
           class="mr-1"
@@ -119,11 +103,29 @@
         </v-btn>
 
         <v-chip
-          class="ml-auto"
           label
           medium
+          class="ml-auto"
         >
           {{ fmtMSS(currentTime) }} / {{ fmtMSS(duration) }}
+        </v-chip>
+
+        <v-chip
+          class="ml-1"
+          @click="toggleVolumeSlider"
+        >
+          <v-slider
+            v-if="volumeSlider"
+            dense
+            max="1"
+            min="0"
+            step="0.01"
+            vertical
+            style="height: 50px; z-index: 999; width: 14px; position: fixed"
+          />
+          <v-icon v-else>
+            mdi-volume-high
+          </v-icon>
         </v-chip>
       </div>
     </div>
@@ -143,12 +145,6 @@ import { SpecSong } from 'monkey-api'
 import axios from 'axios'
 import { api, getSongLink, getAlbumArtLink } from '~/util/api'
 
-// interface $refs {
-//   ul: HTMLElement
-// }
-
-// (Vue as VueConstructor<Vue & { $refs: $refs }>)
-
 function fmtMSS (s: number): string {
   return ((s - (s %= 60)) / 60 + (s > 9 ? ':' : ':0') + s).split('.')[0]
 }
@@ -162,7 +158,6 @@ export default Vue.extend({
         songs: res.data.songs!,
         artistName: res.data.artistName!,
         albumName: res.data.albumName!,
-        albumArt: res.data.albumArt!,
         loading: false,
         breadcrumbs: [
           {
@@ -242,23 +237,34 @@ export default Vue.extend({
       currentTime: 0,
       duration: 0,
       percentComplete: 0,
-      scrobbling: false
+      scrobbling: false,
+      volumeSlider: false,
+      player: {} as HTMLAudioElement
     }
   },
   watch: {
     currentSong () {
-      if (!this.$refs.player) {
-        return
-      }
-      const player = this.$refs.player as HTMLAudioElement
-
-      player.volume = 0.05
-      player.load()
-      player.play()
+      this.player!.src = getSongLink(this.$route.params.artist_id,
+        this.$route.params.album_id, this.currentSong.id!)
+      this.player!.volume = 0.15
+      this.player!.load()
+      this.player!.play()
     }
   },
   mounted () {
+    this.player = new Audio()
+
+    this.player?.addEventListener('ended', this.next)
+    this.player?.addEventListener('timeupdate', this.timeUpdate)
+    this.player?.addEventListener('durationchange', this.durationUpdate)
+    this.player?.addEventListener('loadedmetadata', this.durationUpdate)
+
     this.updateTitle()
+  },
+  beforeDestroy () {
+    // console.log('hello')
+    this.player?.pause()
+    this.player = new Audio()
   },
   methods: {
     clicked (row: SpecSong) {
@@ -289,11 +295,11 @@ export default Vue.extend({
       this.currentSong = this.songs[0]
     },
     toggle () {
-      if ((this.$refs.player as HTMLAudioElement).paused) {
-        (this.$refs.player as HTMLAudioElement).play()
+      if (this.player!.paused) {
+        this.player!.play()
         this.playState = true
       } else {
-        (this.$refs.player as HTMLAudioElement).pause()
+        this.player!.pause()
         this.playState = false
       }
     },
@@ -310,22 +316,25 @@ export default Vue.extend({
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''
     },
     timeUpdate () {
-      if (this.scrobbling || !this.$refs.player) {
+      if (this.scrobbling) {
         return
       }
 
-      this.currentTime = (this.$refs.player as HTMLAudioElement).currentTime
+      this.currentTime = this.player!.currentTime
       this.percentComplete = (this.currentTime / this.duration) * 100
     },
     durationUpdate () {
-      this.duration = (this.$refs.player as HTMLAudioElement).duration
+      this.duration = this.player!.duration
     },
     scrobble () {
-      (this.$refs.player as HTMLAudioElement).currentTime = (this.percentComplete / 100) * (this.$refs.player as HTMLAudioElement).duration
+      this.player!.currentTime = (this.percentComplete / 100) * this.player!.duration
       this.scrobbling = false
     },
     scrobbleStart () {
       this.scrobbling = true
+    },
+    toggleVolumeSlider () {
+      this.volumeSlider = !this.volumeSlider
     },
     fmtMSS,
     getSongLink,

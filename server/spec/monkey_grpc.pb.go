@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type MonkeyClient interface {
 	ListArtists(ctx context.Context, in *ArtistsRequest, opts ...grpc.CallOption) (*ArtistsReply, error)
 	ListAlbums(ctx context.Context, in *AlbumsRequest, opts ...grpc.CallOption) (*AlbumsReply, error)
+	ListAllAlbums(ctx context.Context, in *AllAlbumsRequest, opts ...grpc.CallOption) (*AllAlbumsReply, error)
 	ListSongs(ctx context.Context, in *SongsRequest, opts ...grpc.CallOption) (*SongsReply, error)
 }
 
@@ -49,6 +50,15 @@ func (c *monkeyClient) ListAlbums(ctx context.Context, in *AlbumsRequest, opts .
 	return out, nil
 }
 
+func (c *monkeyClient) ListAllAlbums(ctx context.Context, in *AllAlbumsRequest, opts ...grpc.CallOption) (*AllAlbumsReply, error) {
+	out := new(AllAlbumsReply)
+	err := c.cc.Invoke(ctx, "/spec.Monkey/ListAllAlbums", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *monkeyClient) ListSongs(ctx context.Context, in *SongsRequest, opts ...grpc.CallOption) (*SongsReply, error) {
 	out := new(SongsReply)
 	err := c.cc.Invoke(ctx, "/spec.Monkey/ListSongs", in, out, opts...)
@@ -64,6 +74,7 @@ func (c *monkeyClient) ListSongs(ctx context.Context, in *SongsRequest, opts ...
 type MonkeyServer interface {
 	ListArtists(context.Context, *ArtistsRequest) (*ArtistsReply, error)
 	ListAlbums(context.Context, *AlbumsRequest) (*AlbumsReply, error)
+	ListAllAlbums(context.Context, *AllAlbumsRequest) (*AllAlbumsReply, error)
 	ListSongs(context.Context, *SongsRequest) (*SongsReply, error)
 	mustEmbedUnimplementedMonkeyServer()
 }
@@ -77,6 +88,9 @@ func (UnimplementedMonkeyServer) ListArtists(context.Context, *ArtistsRequest) (
 }
 func (UnimplementedMonkeyServer) ListAlbums(context.Context, *AlbumsRequest) (*AlbumsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAlbums not implemented")
+}
+func (UnimplementedMonkeyServer) ListAllAlbums(context.Context, *AllAlbumsRequest) (*AllAlbumsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllAlbums not implemented")
 }
 func (UnimplementedMonkeyServer) ListSongs(context.Context, *SongsRequest) (*SongsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSongs not implemented")
@@ -130,6 +144,24 @@ func _Monkey_ListAlbums_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Monkey_ListAllAlbums_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllAlbumsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonkeyServer).ListAllAlbums(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/spec.Monkey/ListAllAlbums",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonkeyServer).ListAllAlbums(ctx, req.(*AllAlbumsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Monkey_ListSongs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SongsRequest)
 	if err := dec(in); err != nil {
@@ -162,6 +194,10 @@ var Monkey_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAlbums",
 			Handler:    _Monkey_ListAlbums_Handler,
+		},
+		{
+			MethodName: "ListAllAlbums",
+			Handler:    _Monkey_ListAllAlbums_Handler,
 		},
 		{
 			MethodName: "ListSongs",

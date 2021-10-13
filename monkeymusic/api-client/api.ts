@@ -112,6 +112,50 @@ export interface SpecAlbumsReply {
 /**
  * 
  * @export
+ * @interface SpecAllAlbum
+ */
+export interface SpecAllAlbum {
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllAlbum
+     */
+    id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllAlbum
+     */
+    name?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllAlbum
+     */
+    artistName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllAlbum
+     */
+    artistId?: string;
+}
+/**
+ * 
+ * @export
+ * @interface SpecAllAlbumsReply
+ */
+export interface SpecAllAlbumsReply {
+    /**
+     * 
+     * @type {Array<SpecAllAlbum>}
+     * @memberof SpecAllAlbumsReply
+     */
+    albums?: Array<SpecAllAlbum>;
+}
+/**
+ * 
+ * @export
  * @interface SpecArtist
  */
 export interface SpecArtist {
@@ -266,6 +310,35 @@ export const MonkeyApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        monkeyListAllAlbums: async (options: any = {}): Promise<RequestArgs> => {
+            const localVarPath = `/v1/albums`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         monkeyListArtists: async (options: any = {}): Promise<RequestArgs> => {
             const localVarPath = `/v1/artists`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -352,6 +425,15 @@ export const MonkeyApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        async monkeyListAllAlbums(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SpecAllAlbumsReply>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.monkeyListAllAlbums(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         async monkeyListArtists(options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SpecArtistsReply>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.monkeyListArtists(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
@@ -391,6 +473,14 @@ export const MonkeyApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        monkeyListAllAlbums(options?: any): AxiosPromise<SpecAllAlbumsReply> {
+            return localVarFp.monkeyListAllAlbums(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         monkeyListArtists(options?: any): AxiosPromise<SpecArtistsReply> {
             return localVarFp.monkeyListArtists(options).then((request) => request(axios, basePath));
         },
@@ -423,6 +513,16 @@ export class MonkeyApi extends BaseAPI {
      */
     public monkeyListAlbums(artistId: string, options?: any) {
         return MonkeyApiFp(this.configuration).monkeyListAlbums(artistId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MonkeyApi
+     */
+    public monkeyListAllAlbums(options?: any) {
+        return MonkeyApiFp(this.configuration).monkeyListAllAlbums(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

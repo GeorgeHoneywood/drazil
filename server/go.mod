@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/dhowden/tag v0.0.0-20201120070457-d52dcb253c63 // indirect
+	github.com/golang-migrate/migrate/v4 v4.15.0
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/jmoiron/sqlx v1.3.4

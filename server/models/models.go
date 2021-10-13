@@ -1,7 +1,13 @@
 package models
 
 import (
-	"github.com/jmoiron/sqlx"
+	"embed"
+	"fmt"
+	"log"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 type Artist struct {
@@ -29,42 +35,26 @@ type Song struct {
 	Year     int
 }
 
-func SetupTables(db *sqlx.DB) error {
-	_, err := db.Exec(`CREATE TABLE artist (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name VARCHAR NOT NULL,
-		path VARCHAR NOT NULL
-	);`)
+func SetupTables(DBPath string, fs embed.FS) error {
+	d, err := iofs.New(fs, "migrations")
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec(`CREATE TABLE album (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name VARCHAR NOT NULL,
-		artist_id INTEGER NOT NULL,
-		path VARCHAR NOT NULL,
-		album_art VARCHAR,
-		FOREIGN KEY(artist_id) REFERENCES artist(id)
-	);`)
+	// driver, err := sqlite.WithInstance(db.DB, &sqlite.Config{})
+	// if err != nil {
+	// 	return err
+	// }
+	// m, err := migrate.NewWithDatabaseInstance(
+	// 	"iofs:///migrations",
+	// 	"sqlite", driver)
+	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("sqlite://%s", DBPath))
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec(`CREATE TABLE song (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		number INTEGER,
-		name VARCHAR NOT NULL,
-		album_id INTEGER NOT NULL,
-		path VARCHAR NOT NULL,
-		lyrics VARCHAR,
-		file_type VARCHAR NOT NULL,
-		year INTEGER,
-		FOREIGN KEY(album_id) REFERENCES album(id)
-	);`)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return m.Up()
 }

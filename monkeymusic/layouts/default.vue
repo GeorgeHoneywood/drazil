@@ -58,6 +58,11 @@ export default {
           icon: 'mdi-account-multiple',
           title: 'Artists',
           to: '/artists'
+        },
+        {
+          icon: 'mdi-disc',
+          title: 'Albums',
+          to: '/albums'
         }
       ],
       miniVariant: false,

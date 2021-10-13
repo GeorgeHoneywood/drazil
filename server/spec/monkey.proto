@@ -17,6 +17,11 @@ service Monkey {
         get: "/v1/artist/{artist_id}/albums"
       };
   }
+  rpc ListAllAlbums (AllAlbumsRequest) returns (AllAlbumsReply) {
+    option (google.api.http) = {
+        get: "/v1/albums"
+      };
+  }
   rpc ListSongs (SongsRequest) returns (SongsReply) {
     option (google.api.http) = {
         get: "/v1/artist/{artist_id}/album/{album_id}/songs"
@@ -72,4 +77,18 @@ message Song {
   string lyrics = 5;
 	string file_type = 6;
 	int32 year = 7;
+}
+
+message AllAlbumsRequest {
+}
+
+message AllAlbum {
+  int64 id = 1;
+  string name = 2;
+  string artist_name = 3;
+  int64 artist_id = 4;
+}
+
+message AllAlbumsReply {
+  repeated AllAlbum albums = 1;
 }

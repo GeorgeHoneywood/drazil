@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/JoeRourke123/Monkey/models"
 	"github.com/JoeRourke123/Monkey/spec"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,6 +17,7 @@ type Handler struct {
 	spec.UnimplementedMonkeyServer
 	DB        *sqlx.DB
 	MusicPath string
+	Log       *zap.Logger
 }
 
 func (h *Handler) ListArtists(ctx context.Context, in *spec.ArtistsRequest) (*spec.ArtistsReply, error) {
@@ -24,14 +25,14 @@ func (h *Handler) ListArtists(ctx context.Context, in *spec.ArtistsRequest) (*sp
 	err := h.DB.Select(&artists,
 		`SELECT * FROM artist ORDER BY name;`)
 	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get artists from db", zap.Error(err))
 	}
 
 	var artistCount int32
 	err = h.DB.Get(&artistCount,
 		`SELECT COUNT(*) FROM artist;`)
 	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get artist count from db", zap.Error(err))
 	}
 
 	out := make([]*spec.Artist, len(artists))
@@ -58,7 +59,7 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 		ORDER BY name;`,
 		in.ArtistId)
 	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get albums from db", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -72,7 +73,7 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 		WHERE id=$1;`,
 		in.ArtistId)
 	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get artist from db", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -102,6 +103,7 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 	if err == sql.ErrNoRows {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("artist '%d' has no album '%d'", in.ArtistId, in.AlbumId))
 	} else if err != nil {
+		h.Log.Error("could not get album from db", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -112,7 +114,8 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		ORDER BY number;`,
 		in.AlbumId)
 	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get songs from db", zap.Error(err), zap.Int64("album_id", in.AlbumId))
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	artistName := ""
@@ -121,12 +124,7 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		WHERE id=$1;`,
 		in.ArtistId)
 	if err != nil {
-		log.Print(err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	if err != nil {
-		log.Print(err)
+		h.Log.Error("could not get artist from db", zap.Error(err), zap.Int64("artist_id", in.ArtistId))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -146,5 +144,28 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 		Songs:      out,
 		ArtistName: artistName,
 		AlbumName:  album.Name,
+	}, nil
+}
+
+func (h *Handler) ListAllAlbums(ctx context.Context, in *spec.AllAlbumsRequest) (*spec.AllAlbumsReply, error) {
+	albums := []models.Album{}
+	err := h.DB.Select(&albums,
+		`SELECT * FROM album ORDER BY name;`)
+	if err != nil {
+		h.Log.Error("could not get albums from db", zap.Error(err))
+	}
+
+	out := make([]*spec.AllAlbum, len(albums))
+	for i, album := range albums {
+		out[i] = &spec.AllAlbum{
+			Id:         album.ID,
+			Name:       album.Name,
+			ArtistName: "Lorem Ipsum",
+			ArtistId:   album.ArtistID,
+		}
+	}
+
+	return &spec.AllAlbumsReply{
+		Albums: out,
 	}, nil
 }

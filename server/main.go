@@ -2,9 +2,7 @@ package main
 
 import (
 	"embed"
-	"errors"
 	"fmt"
-	"os"
 
 	"github.com/JoeRourke123/Monkey/models"
 	"github.com/JoeRourke123/Monkey/scanner"
@@ -14,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:embed dist/*
+//go:embed dist/* migrations/*.sql
 
 var static embed.FS
 
@@ -36,8 +34,10 @@ func main() {
 	// TESTING ONLY
 	// os.Remove(s.DatabasePath)
 
-	_, err = os.Stat(s.DatabasePath)
-	exist := !errors.Is(err, os.ErrNotExist)
+	err = models.SetupTables(s.DatabasePath, s.StaticFS)
+	if err != nil {
+		s.Log.Debug("error setting up db", zap.Error(err))
+	}
 
 	s.Log.Info("connecting to database", zap.String("path", s.DatabasePath))
 	s.DB, err = sqlx.Connect("sqlite3", s.DatabasePath)
@@ -51,17 +51,6 @@ func main() {
 		}
 	}()
 
-	if !exist {
-		s.Log.Debug("database is new -- setting up tables")
-
-		err = models.SetupTables(s.DB)
-		if err != nil {
-			s.Log.Debug("error setting up db", zap.Error(err))
-		}
-	} else {
-		s.Log.Debug("database already set up")
-	}
-
 	s.Log.Debug("scanning for music", zap.String("path", s.MusicPath))
 	sc := &scanner.Scanner{
 		MusicPath: s.MusicPath,
@@ -73,7 +62,6 @@ func main() {
 		s.Log.Debug("error scanning music", zap.Error(err))
 	}
 
-	s.Log.Debug("serving", zap.String("http", s.HTTPPort))
 	if err := s.Run(); err != nil {
 		s.Log.Fatal("fatal error during run", zap.Error(err))
 	}
