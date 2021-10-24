@@ -57,10 +57,12 @@ func main() {
 		Log:       s.Log,
 	}
 
-	err = sc.FindArtists(s.DB)
-	if err != nil {
-		s.Log.Debug("error scanning music", zap.Error(err))
-	}
+	go func() {
+		err = sc.FindArtists(s.DB)
+		if err != nil {
+			s.Log.Debug("error scanning music", zap.Error(err))
+		}
+	}()
 
 	if err := s.Run(); err != nil {
 		s.Log.Fatal("fatal error during run", zap.Error(err))

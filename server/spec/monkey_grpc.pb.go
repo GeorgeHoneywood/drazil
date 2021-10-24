@@ -22,6 +22,7 @@ type MonkeyClient interface {
 	ListAlbums(ctx context.Context, in *AlbumsRequest, opts ...grpc.CallOption) (*AlbumsReply, error)
 	ListAllAlbums(ctx context.Context, in *AllAlbumsRequest, opts ...grpc.CallOption) (*AllAlbumsReply, error)
 	ListSongs(ctx context.Context, in *SongsRequest, opts ...grpc.CallOption) (*SongsReply, error)
+	Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchReply, error)
 }
 
 type monkeyClient struct {
@@ -68,6 +69,15 @@ func (c *monkeyClient) ListSongs(ctx context.Context, in *SongsRequest, opts ...
 	return out, nil
 }
 
+func (c *monkeyClient) Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchReply, error) {
+	out := new(SearchReply)
+	err := c.cc.Invoke(ctx, "/spec.Monkey/Search", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MonkeyServer is the server API for Monkey service.
 // All implementations must embed UnimplementedMonkeyServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type MonkeyServer interface {
 	ListAlbums(context.Context, *AlbumsRequest) (*AlbumsReply, error)
 	ListAllAlbums(context.Context, *AllAlbumsRequest) (*AllAlbumsReply, error)
 	ListSongs(context.Context, *SongsRequest) (*SongsReply, error)
+	Search(context.Context, *SearchRequest) (*SearchReply, error)
 	mustEmbedUnimplementedMonkeyServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedMonkeyServer) ListAllAlbums(context.Context, *AllAlbumsReques
 }
 func (UnimplementedMonkeyServer) ListSongs(context.Context, *SongsRequest) (*SongsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSongs not implemented")
+}
+func (UnimplementedMonkeyServer) Search(context.Context, *SearchRequest) (*SearchReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
 }
 func (UnimplementedMonkeyServer) mustEmbedUnimplementedMonkeyServer() {}
 
@@ -180,6 +194,24 @@ func _Monkey_ListSongs_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Monkey_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonkeyServer).Search(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/spec.Monkey/Search",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonkeyServer).Search(ctx, req.(*SearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Monkey_ServiceDesc is the grpc.ServiceDesc for Monkey service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +234,10 @@ var Monkey_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSongs",
 			Handler:    _Monkey_ListSongs_Handler,
+		},
+		{
+			MethodName: "Search",
+			Handler:    _Monkey_Search_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

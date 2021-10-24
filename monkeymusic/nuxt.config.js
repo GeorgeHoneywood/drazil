@@ -20,7 +20,7 @@ export default {
 
   generate: {
     fallback: '404.html',
-    exclude: ['/artists', /^\/artist/]
+    exclude: ['/artists', /^\/artist/, '/albums']
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css

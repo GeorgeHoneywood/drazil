@@ -6,6 +6,7 @@
         elevation="1"
         color="primary"
         class="mr-2"
+        icon
         @click="play"
       >
         <v-icon>
@@ -16,6 +17,7 @@
         elevation="1"
         color="secondary"
         class="mr-auto"
+        icon
         @click="shuffle"
       >
         <v-icon>
@@ -36,7 +38,7 @@
       </v-chip>
       <v-img
         class="ml-2 rounded"
-        :src="getAlbumArtLink($route.params.artist_id,$route.params.album_id)"
+        :src="getAlbumArtLink($route.params.artist_id, $route.params.album_id)"
         max-width="40px"
         max-height="40px"
       />
@@ -56,13 +58,56 @@
         <template
           v-if="currentSong.id == item.id"
         >
-          <v-icon v-if="!playState" style="color: white">
+          <v-icon v-if="player.paused" style="color: white">
             mdi-pause
           </v-icon>
           <v-icon v-else style="color: white">
             mdi-play
           </v-icon>
         </template>
+      </template>
+      <template #[`item.lyrics`]="{ item }">
+        <v-dialog
+          v-if="item.lyrics"
+          max-width="500"
+        >
+          <template #activator="{ on, attrs }">
+            <v-btn
+              v-bind="attrs"
+              icon
+              v-on="on"
+            >
+              <v-icon>
+                mdi-view-headline
+              </v-icon>
+            </v-btn>
+          </template>
+          <template #default="dialog">
+            <v-card>
+              <v-card-title class="text-h6 primary lighten-2 white--text">
+                <span>{{ albumName }} - {{ item.name }}</span>
+                <v-spacer />
+                <v-btn
+                  class="ml-auto"
+                  icon
+                  @click="dialog.value = false"
+                >
+                  <v-icon
+                    style="color: white"
+                  >
+                    mdi-close
+                  </v-icon>
+                </v-btn>
+              </v-card-title>
+
+              <v-card-text
+                class="mt-4"
+                style="white-space: pre-line"
+                v-text="item.lyrics"
+              />
+            </v-card>
+          </template>
+        </v-dialog>
       </template>
     </v-data-table>
     <div class="mt-2 white" style="position: sticky; bottom: 0px; padding-bottom: 10px;">
@@ -84,7 +129,7 @@
           class="mr-1"
           @click="toggle"
         >
-          <v-icon v-if="playState">
+          <v-icon v-if="!player.paused">
             mdi-pause
           </v-icon>
           <v-icon v-else>
@@ -221,6 +266,12 @@ export default Vue.extend({
           text: 'Song name',
           value: 'name',
           sortable: false
+        },
+        {
+          text: 'Lyrics',
+          value: 'lyrics',
+          sortable: false,
+          align: 'right'
         }
       ],
       songs: [] as SpecSong[],
@@ -233,7 +284,6 @@ export default Vue.extend({
       breadcrumbs: [],
       playing: false,
       shuffling: false,
-      playState: true,
       currentTime: 0,
       duration: 0,
       percentComplete: 0,
@@ -249,6 +299,20 @@ export default Vue.extend({
       this.player!.volume = 0.15
       this.player!.load()
       this.player!.play()
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: this.currentSong.name,
+          artist: this.artistName,
+          album: this.albumName,
+          artwork: [
+            { src: `${getAlbumArtLink(this.$route.params.artist_id, this.$route.params.album_id)}` }
+          ]
+        })
+
+        // navigator.mediaSession.setActionHandler('previoustrack', function () { /* Code excerpted. */ })
+        navigator.mediaSession.setActionHandler('nexttrack', this.next)
+      }
     }
   },
   mounted () {
@@ -269,7 +333,6 @@ export default Vue.extend({
   methods: {
     clicked (row: SpecSong) {
       this.currentSong = row
-      this.playState = true
     },
     next () {
       if (this.shuffling) {
@@ -280,7 +343,6 @@ export default Vue.extend({
       const nextSong = this.songs[this.currentSong.number!]
 
       if (!nextSong) {
-        this.playState = false
         this.playing = false
         this.currentSong = {}
         return
@@ -289,7 +351,6 @@ export default Vue.extend({
       this.currentSong = nextSong
     },
     play () {
-      this.playState = true
       this.playing = true
       this.shuffling = false
       this.currentSong = this.songs[0]
@@ -297,14 +358,11 @@ export default Vue.extend({
     toggle () {
       if (this.player!.paused) {
         this.player!.play()
-        this.playState = true
       } else {
         this.player!.pause()
-        this.playState = false
       }
     },
     shuffle () {
-      this.playState = true
       this.shuffling = true
       this.playing = false
       this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)] // random :p

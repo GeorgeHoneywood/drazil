@@ -156,6 +156,73 @@ export interface SpecAllAlbumsReply {
 /**
  * 
  * @export
+ * @interface SpecAllSong
+ */
+export interface SpecAllSong {
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    albumId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    albumName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    artistName?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    artistId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    name?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpecAllSong
+     */
+    number?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    lyrics?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAllSong
+     */
+    fileType?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpecAllSong
+     */
+    year?: number;
+}
+/**
+ * 
+ * @export
  * @interface SpecArtist
  */
 export interface SpecArtist {
@@ -196,6 +263,31 @@ export interface SpecArtistsReply {
      * @memberof SpecArtistsReply
      */
     artistCount?: number;
+}
+/**
+ * 
+ * @export
+ * @interface SpecSearchReply
+ */
+export interface SpecSearchReply {
+    /**
+     * 
+     * @type {Array<SpecArtist>}
+     * @memberof SpecSearchReply
+     */
+    artists?: Array<SpecArtist>;
+    /**
+     * 
+     * @type {Array<SpecAllAlbum>}
+     * @memberof SpecSearchReply
+     */
+    albums?: Array<SpecAllAlbum>;
+    /**
+     * 
+     * @type {Array<SpecAllSong>}
+     * @memberof SpecSearchReply
+     */
+    songs?: Array<SpecAllSong>;
 }
 /**
  * 
@@ -400,6 +492,39 @@ export const MonkeyApiAxiosParamCreator = function (configuration?: Configuratio
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {string} token 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        monkeySearch: async (token: string, options: any = {}): Promise<RequestArgs> => {
+            // verify required parameter 'token' is not null or undefined
+            assertParamExists('monkeySearch', 'token', token)
+            const localVarPath = `/v1/search/{token}`
+                .replace(`{${"token"}}`, encodeURIComponent(String(token)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -449,6 +574,16 @@ export const MonkeyApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.monkeyListSongs(artistId, albumId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         * 
+         * @param {string} token 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async monkeySearch(token: string, options?: any): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SpecSearchReply>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.monkeySearch(token, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     }
 };
 
@@ -493,6 +628,15 @@ export const MonkeyApiFactory = function (configuration?: Configuration, basePat
          */
         monkeyListSongs(artistId: string, albumId: string, options?: any): AxiosPromise<SpecSongsReply> {
             return localVarFp.monkeyListSongs(artistId, albumId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} token 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        monkeySearch(token: string, options?: any): AxiosPromise<SpecSearchReply> {
+            return localVarFp.monkeySearch(token, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -545,6 +689,17 @@ export class MonkeyApi extends BaseAPI {
      */
     public monkeyListSongs(artistId: string, albumId: string, options?: any) {
         return MonkeyApiFp(this.configuration).monkeyListSongs(artistId, albumId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} token 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof MonkeyApi
+     */
+    public monkeySearch(token: string, options?: any) {
+        return MonkeyApiFp(this.configuration).monkeySearch(token, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

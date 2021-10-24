@@ -3,16 +3,17 @@
     <v-col
       v-for="album in albums"
       :key="album.id"
-      :cols="4"
     >
       <v-card
+        width="200"
+        height="200"
+        tile
         @click="showAlbum(album.artistId, album.id)"
       >
         <v-img
           :src="getAlbumArtLink(album.artistId, album.id)"
           class="white--text align-end"
           gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-          height="200px"
         >
           <v-card-title v-text="album.name" />
         </v-img>
@@ -73,6 +74,8 @@ export default Vue.extend({
       this.$nuxt.$emit('updateTitle', this.title)
     },
     showAlbum (artistId: string, id: string) {
+      console.log({ artistId }, { id })
+
       this.$router.push({
         name: 'artist-artist_id-album-album_id-songs',
         params: {

@@ -1,6 +1,6 @@
 {
   "name": "monkey-api",
-  "version": "version not set",
+  "version": "0.0.1",
   "description": "OpenAPI client for monkey-api",
   "author": "OpenAPI-Generator Contributors",
   "keywords": [

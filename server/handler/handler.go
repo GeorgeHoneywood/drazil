@@ -169,3 +169,75 @@ func (h *Handler) ListAllAlbums(ctx context.Context, in *spec.AllAlbumsRequest) 
 		Albums: out,
 	}, nil
 }
+
+func (h *Handler) Search(ctx context.Context, in *spec.SearchRequest) (*spec.SearchReply, error) {
+	artists := []models.Artist{}
+	err := h.DB.Select(&artists,
+		`SELECT * FROM artist_fts($1)
+		JOIN artist ON artist.id = artist_fts.rowid
+		ORDER BY rank;`,
+		in.Token)
+	if err != nil {
+		h.Log.Error("could not get artists from db", zap.Error(err))
+	}
+
+	outArtists := make([]*spec.Artist, len(artists))
+	for i, artist := range artists {
+		outArtists[i] = &spec.Artist{
+			Name: artist.Name,
+			Id:   artist.ID,
+		}
+	}
+
+	albums := []models.Album{}
+	err = h.DB.Select(&albums,
+		`SELECT * FROM album_fts($1)
+		JOIN album ON album.id = album_fts.rowid
+		ORDER BY rank;`,
+		in.Token)
+	if err != nil {
+		h.Log.Error("could not get albums from db", zap.Error(err))
+	}
+
+	outAlbums := make([]*spec.AllAlbum, len(albums))
+	for i, album := range albums {
+		outAlbums[i] = &spec.AllAlbum{
+			Id:         album.ID,
+			Name:       album.Name,
+			ArtistName: "Lorem Ipsum",
+			ArtistId:   album.ArtistID,
+		}
+	}
+
+	songs := []models.Song{}
+	err = h.DB.Select(&songs,
+		`SELECT * FROM song_fts($1)
+		JOIN song ON song.id = song_fts.rowid
+		ORDER BY rank;`,
+		in.Token)
+	if err != nil {
+		h.Log.Error("could not get songs from db", zap.Error(err))
+	}
+
+	outSongs := make([]*spec.AllSong, len(songs))
+	for i, song := range songs {
+		outSongs[i] = &spec.AllSong{
+			AlbumId:    song.AlbumID,
+			AlbumName:  "",
+			ArtistName: "",
+			ArtistId:   0,
+			Id:         song.ID,
+			Name:       song.Name,
+			Number:     song.Number,
+			Lyrics:     song.Lyrics,
+			FileType:   song.FileType,
+			Year:       int32(song.Year),
+		}
+	}
+
+	return &spec.SearchReply{
+		Artists: outArtists,
+		Albums:  outAlbums,
+		Songs:   outSongs,
+	}, nil
+}
