@@ -2,6 +2,7 @@ package models
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"log"
 
@@ -41,13 +42,6 @@ func SetupTables(DBPath string, fs embed.FS) error {
 		return err
 	}
 
-	// driver, err := sqlite.WithInstance(db.DB, &sqlite.Config{})
-	// if err != nil {
-	// 	return err
-	// }
-	// m, err := migrate.NewWithDatabaseInstance(
-	// 	"iofs:///migrations",
-	// 	"sqlite", driver)
 	m, err := migrate.NewWithSourceInstance("iofs", d, fmt.Sprintf("sqlite://%s", DBPath))
 	if err != nil {
 		log.Fatal(err)
@@ -56,5 +50,16 @@ func SetupTables(DBPath string, fs embed.FS) error {
 		return err
 	}
 
-	return m.Up()
+	res := m.Up()
+
+	if errors.Is(res, migrate.ErrNoChange) {
+		// no change is not an error here
+
+		// TODO: log here
+		return nil
+	} else if res != nil {
+		return res
+	} else {
+		return res
+	}
 }

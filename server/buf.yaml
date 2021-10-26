@@ -1,5 +1,5 @@
 version: v1beta1
-name: buf.build/JoeRourke123/Monkey
+name: buf.build/GeorgeHoneywood/drazil 
 build:
   roots:
   - .

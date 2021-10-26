@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/JoeRourke123/Monkey/models"
-	"github.com/JoeRourke123/Monkey/spec"
+	"github.com/GeorgeHoneywood/drazil/models"
+	"github.com/GeorgeHoneywood/drazil/spec"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -14,7 +14,7 @@ import (
 )
 
 type Handler struct {
-	spec.UnimplementedMonkeyServer
+	spec.UnimplementedDrazilServer
 	DB        *sqlx.DB
 	MusicPath string
 	Log       *zap.Logger

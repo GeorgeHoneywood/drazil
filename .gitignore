@@ -140,3 +140,5 @@ monkeymusic/.vscode/launch.json
 monkeymusic/.vscode/tasks.json
 server/.vscode/launch.json
 server/Monkey
+server/drazil
+server/drazil.db

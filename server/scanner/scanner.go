@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/JoeRourke123/Monkey/models"
+	"github.com/GeorgeHoneywood/drazil/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/wader/tag"
 	"go.uber.org/zap"

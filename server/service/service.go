@@ -13,8 +13,8 @@ import (
 	"path"
 	"time"
 
-	"github.com/JoeRourke123/Monkey/handler"
-	"github.com/JoeRourke123/Monkey/spec"
+	"github.com/GeorgeHoneywood/drazil/handler"
+	"github.com/GeorgeHoneywood/drazil/spec"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
@@ -101,7 +101,7 @@ func (s *Server) Run() error {
 		Log:       s.Log,
 	}
 
-	spec.RegisterMonkeyServer(grpcServer, h)
+	spec.RegisterDrazilServer(grpcServer, h)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
@@ -115,7 +115,7 @@ func (s *Server) Run() error {
 
 	apiMux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err = spec.RegisterMonkeyHandlerFromEndpoint(ctx, apiMux, s.GRPCRoot, opts)
+	err = spec.RegisterDrazilHandlerFromEndpoint(ctx, apiMux, s.GRPCRoot, opts)
 	if err != nil {
 		return err
 	}

@@ -5,9 +5,9 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/JoeRourke123/Monkey/models"
-	"github.com/JoeRourke123/Monkey/scanner"
-	"github.com/JoeRourke123/Monkey/service"
+	"github.com/GeorgeHoneywood/drazil/models"
+	"github.com/GeorgeHoneywood/drazil/scanner"
+	"github.com/GeorgeHoneywood/drazil/service"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 	_ "modernc.org/sqlite"
@@ -30,10 +30,12 @@ func main() {
 		GRPCRoot:     "localhost:9091",
 		HTTPPort:     "0.0.0.0:4444",
 		MusicPath:    *musicPath,
-		DatabasePath: "./monkey.db",
+		DatabasePath: "./drazil.db",
 		StaticFS:     static,
 		Log:          log,
 	}
+
+	log.Info("drazil is starting!")
 
 	// TESTING ONLY
 	// os.Remove(s.DatabasePath)
