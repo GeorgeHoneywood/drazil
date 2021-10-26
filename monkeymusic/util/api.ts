@@ -2,7 +2,8 @@ import { MonkeyApi, Configuration } from 'monkey-api'
 
 const config = new Configuration({})
 
-export const apiBase = 'http://192.168.1.169:4444'
+export const apiBase = process.env.baseUrl || window.location.host
+console.log('baseUrl', process.env.baseUrl)
 
 export const api = new MonkeyApi(config, apiBase)
 

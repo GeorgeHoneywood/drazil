@@ -17,6 +17,7 @@ export default {
   },
 
   target: 'static',
+  ssr: false,
 
   generate: {
     fallback: '404.html',
@@ -86,19 +87,19 @@ export default {
       //   }
       // }
       }
-    },
+    }
+  },
 
-    // Build Configuration: https://go.nuxtjs.dev/config-build
-    build: {
-      extend (config, ctx) {
-        if (ctx.isDev) {
-          config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
-        }
+  // Build Configuration: https://go.nuxtjs.dev/config-build
+  build: {
+    extend (config, ctx) {
+      if (ctx.isDev) {
+        config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
       }
     }
+  },
 
-    // env: {
-    //   baseUrl: process.env.BASE_URL || 'http://localhost:3000'
-    // }
+  env: {
+    baseUrl: process.env.BASE_URL
   }
 }

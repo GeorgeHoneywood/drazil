@@ -2,14 +2,15 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"fmt"
 
 	"github.com/JoeRourke123/Monkey/models"
 	"github.com/JoeRourke123/Monkey/scanner"
 	"github.com/JoeRourke123/Monkey/service"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed dist/* migrations/*.sql
@@ -17,6 +18,9 @@ import (
 var static embed.FS
 
 func main() {
+	musicPath := flag.String("d", "/home/honeyfox/Music/", "music path (include trailing slash)")
+	flag.Parse()
+
 	log, err := zap.NewDevelopment()
 	if err != nil {
 		fmt.Println("error creating logger")
@@ -25,7 +29,7 @@ func main() {
 	s := &service.Server{
 		GRPCRoot:     "localhost:9091",
 		HTTPPort:     "0.0.0.0:4444",
-		MusicPath:    "/home/honeyfox/Music/",
+		MusicPath:    *musicPath,
 		DatabasePath: "./monkey.db",
 		StaticFS:     static,
 		Log:          log,
@@ -40,7 +44,7 @@ func main() {
 	}
 
 	s.Log.Info("connecting to database", zap.String("path", s.DatabasePath))
-	s.DB, err = sqlx.Connect("sqlite3", s.DatabasePath)
+	s.DB, err = sqlx.Connect("sqlite", s.DatabasePath)
 	if err != nil {
 		s.Log.Fatal("could not connect to database", zap.Error(err))
 	}
