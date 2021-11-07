@@ -156,21 +156,20 @@
         </v-chip>
 
         <v-chip
+          v-if="!$vuetify.breakpoint.mobile"
+          label
           class="ml-1"
-          @click="toggleVolumeSlider"
         >
           <v-slider
-            v-if="volumeSlider"
+            v-model="player.volume"
+            style="width: 150px"
             dense
             max="1"
             min="0"
             step="0.01"
-            vertical
-            style="height: 50px; z-index: 999; width: 14px; position: fixed"
+            class="my-auto"
+            prepend-icon="mdi-volume-high"
           />
-          <v-icon v-else>
-            mdi-volume-high
-          </v-icon>
         </v-chip>
       </div>
     </div>
@@ -191,7 +190,9 @@ import axios from 'axios'
 import { api, getSongLink, getAlbumArtLink } from '~/util/api'
 
 function fmtMSS (s: number): string {
-  return ((s - (s %= 60)) / 60 + (s > 9 ? ':' : ':0') + s).split('.')[0]
+  const date = new Date(0)
+  date.setSeconds(s)
+  return date.toISOString().substr(14, 5)
 }
 
 export default Vue.extend({
@@ -288,7 +289,6 @@ export default Vue.extend({
       duration: 0,
       percentComplete: 0,
       scrobbling: false,
-      volumeSlider: false,
       player: {} as HTMLAudioElement
     }
   },
@@ -296,7 +296,6 @@ export default Vue.extend({
     currentSong () {
       this.player!.src = getSongLink(this.$route.params.artist_id,
         this.$route.params.album_id, this.currentSong.id!)
-      this.player!.volume = 0.15
       this.player!.load()
       this.player!.play()
 
@@ -318,16 +317,21 @@ export default Vue.extend({
   mounted () {
     this.player = new Audio()
 
-    this.player?.addEventListener('ended', this.next)
-    this.player?.addEventListener('timeupdate', this.timeUpdate)
-    this.player?.addEventListener('durationchange', this.durationUpdate)
-    this.player?.addEventListener('loadedmetadata', this.durationUpdate)
+    this.player.addEventListener('ended', this.next)
+    this.player.addEventListener('timeupdate', this.timeUpdate)
+    this.player.addEventListener('durationchange', this.durationUpdate)
+    this.player.addEventListener('loadedmetadata', this.durationUpdate)
+
+    if (this.$vuetify.breakpoint.mobile) {
+      this.player.volume = 1
+    } else {
+      this.player.volume = 0.15
+    }
 
     this.updateTitle()
   },
   beforeDestroy () {
-    // console.log('hello')
-    this.player?.pause()
+    this.player.pause()
     this.player = new Audio()
   },
   methods: {
@@ -390,9 +394,6 @@ export default Vue.extend({
     },
     scrobbleStart () {
       this.scrobbling = true
-    },
-    toggleVolumeSlider () {
-      this.volumeSlider = !this.volumeSlider
     },
     fmtMSS,
     getSongLink,
