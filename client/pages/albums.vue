@@ -3,40 +3,32 @@
     <v-col
       v-for="album in albums"
       :key="album.id"
+      cols="6"
+      sm="3"
+      md="3"
+      lg="2"
     >
       <v-card
-        width="200"
-        height="200"
         tile
         @click="showAlbum(album.artistId, album.id)"
       >
-        <v-img
-          :src="getAlbumArtLink(album.artistId, album.id)"
-          class="white--text align-end"
-          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-        >
-          <v-card-title v-text="album.name" />
-        </v-img>
-
-        <!-- <v-card-actions>
-          <v-spacer />
-
-          <v-btn icon>
-            <v-icon>mdi-heart</v-icon>
-          </v-btn>
-
-          <v-btn icon>
-            <v-icon>mdi-bookmark</v-icon>
-          </v-btn>
-
-          <v-btn icon>
-            <v-icon>mdi-share-variant</v-icon>
-          </v-btn>
-        </v-card-actions> -->
+        <v-responsive :aspect-ratio="1/1">
+          <v-img
+            :src="getAlbumArtLink(album.artistId, album.id)"
+            class="align-end"
+            gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,.5)"
+            height="100%"
+          >
+            <v-card-title
+              class="white--text text-subtitle-1"
+              style="word-break: normal"
+              v-text="album.name"
+            />
+          </v-img>
+        </v-responsive>
       </v-card>
     </v-col>
   </v-row>
-  <!-- <p>{{ albums }}</p> -->
 </template>
 
 <script lang="ts">
