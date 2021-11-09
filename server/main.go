@@ -66,7 +66,12 @@ func main() {
 	go func() {
 		err = sc.FindArtists(s.DB)
 		if err != nil {
-			s.Log.Debug("error scanning music", zap.Error(err))
+			s.Log.Error("could not scan for music", zap.Error(err))
+		}
+
+		err = sc.FindArt(s.DB)
+		if err != nil {
+			s.Log.Error("could not scan for art", zap.Error(err))
 		}
 	}()
 

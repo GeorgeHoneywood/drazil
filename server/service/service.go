@@ -139,31 +139,32 @@ func (s *Server) customRoutes(mux *runtime.ServeMux, h *handler.Handler) {
 	err := mux.HandlePath("GET",
 		"/v1/artist/{artist_id}/album/{album_id}/art",
 		func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-			var path string
-			err := h.DB.Get(&path, `
+			var artBytes []byte
+			dbErr := h.DB.Get(&artBytes, `
 				SELECT album.album_art FROM album
 				WHERE album.id=$1 AND album.artist_id=$2;
 				`, params["album_id"], params["artist_id"])
-			if err != nil {
-				if err == sql.ErrNoRows {
+			if dbErr != nil {
+				if dbErr == sql.ErrNoRows {
 					w.WriteHeader(http.StatusNotFound)
-					log.Printf("illegal access '%s'", err.Error())
+					s.Log.Warn("art not found", zap.Error(dbErr), zap.String("album_id", params["album_id"]))
 					return
 				}
 
 				w.WriteHeader(http.StatusBadRequest)
-				log.Printf("error finding path '%s'", err.Error())
+				s.Log.Error("error loading art", zap.Error(dbErr))
 				return
 			}
 
-			absolutePath := s.MusicPath + path
-
-			fileBytes, err := os.ReadFile(absolutePath)
-			if err != nil {
+			if len(artBytes) == 0 {
 				w.WriteHeader(http.StatusNotFound)
+				// s.Log.Warn("art not found",
+				// 	zap.String("album_id", params["album_id"]),
+				// )
+				return
 			}
 
-			w.Write(fileBytes)
+			w.Write(artBytes)
 		})
 	if err != nil {
 		panic(err)

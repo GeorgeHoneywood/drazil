@@ -143,15 +143,9 @@ func (sc *Scanner) findAlbums(tx *sqlx.Tx, artist *models.Artist) error {
 			}
 			album.Name = strings.Trim(album.Name, "- ")
 
-			path.WriteString("/cover.jpg")
-
-			if _, err := os.Stat(sc.MusicPath + path.String()); err == nil {
-				album.AlbumArt = path.String()
-			}
-
 			rows, err := tx.NamedQuery(`
-			INSERT INTO album (artist_id, name, path, album_art)
-			VALUES (:artist_id, :name, :path, :album_art)
+			INSERT INTO album (artist_id, name, path)
+			VALUES (:artist_id, :name, :path)
 			RETURNING id;`, album)
 			if err != nil {
 				return err

@@ -22,7 +22,7 @@ type Album struct {
 	ArtistID int64 `db:"artist_id"`
 	Name     string
 	Path     string
-	AlbumArt string `db:"album_art"`
+	AlbumArt []byte `db:"album_art"`
 }
 
 type Song struct {
