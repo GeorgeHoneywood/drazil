@@ -48,7 +48,6 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 	c := make(chan models.Album)
 
 	var wg sync.WaitGroup
-	var mut sync.Mutex
 	wg.Add(parallelCount)
 	for ii := 0; ii < parallelCount; ii++ {
 
@@ -60,7 +59,7 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 					return
 				}
 
-				sc.processImage(album, s, &mut, tx)
+				sc.processImage(album, s, tx)
 			}
 		}(c)
 	}
@@ -87,7 +86,7 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 	return nil
 }
 
-func (sc *Scanner) processImage(album models.Album, s *ArtStats, mut *sync.Mutex, tx *sqlx.Tx) {
+func (sc *Scanner) processImage(album models.Album, s *ArtStats, tx *sqlx.Tx) {
 	// scan for album artworks here :)
 	// try easy ones first, like cover.jpg
 	// then we can try using the tags library to retrieve an embedded image
@@ -107,14 +106,11 @@ func (sc *Scanner) processImage(album models.Album, s *ArtStats, mut *sync.Mutex
 	} else {
 		song := models.Song{}
 
-		mut.Lock()
 		err := tx.Get(&song,
 			`SELECT * FROM song
 			WHERE album_id = $1
 			LIMIT 1;`,
 			album.ID)
-		mut.Unlock()
-
 		if err != nil {
 			sc.Log.Warn("could not get song from album",
 				zap.Error(err),
@@ -153,13 +149,11 @@ func (sc *Scanner) processImage(album models.Album, s *ArtStats, mut *sync.Mutex
 		s.totalMetaImage++
 	}
 
-	mut.Lock()
 	_, err := tx.NamedExec(
 		`UPDATE album
 		SET album_art = :album_art
 		WHERE id = :id;`,
 		album)
-	mut.Unlock()
 
 	if err != nil {
 		sc.Log.Error("could not insert art to db",

@@ -57,6 +57,8 @@ func main() {
 		}
 	}()
 
+	s.DB.SetMaxOpenConns(1)
+
 	s.Log.Debug("scanning for music", zap.String("path", s.MusicPath))
 	sc := &scanner.Scanner{
 		MusicPath: s.MusicPath,
