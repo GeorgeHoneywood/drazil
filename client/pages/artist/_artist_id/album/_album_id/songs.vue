@@ -84,11 +84,13 @@
           </template>
           <template #default="dialog">
             <v-card>
-              <v-card-title class="text-h6 primary lighten-2 white--text">
-                <span>{{ albumName }} - {{ item.name }}</span>
+              <v-card-title class="text-h6 primary white--text">
+                <span
+                  class="text-truncate d-inline-block"
+                >{{ item.name }}</span>
                 <v-spacer />
                 <v-btn
-                  class="ml-auto"
+
                   icon
                   @click="dialog.value = false"
                 >
@@ -205,6 +207,7 @@ export default Vue.extend({
         artistName: res.data.artistName!,
         albumName: res.data.albumName!,
         loading: false,
+        title: `${res.data.artistName} - ${res.data.albumName}`,
         breadcrumbs: [
           {
             text: 'Artists',
@@ -312,6 +315,12 @@ export default Vue.extend({
         // navigator.mediaSession.setActionHandler('previoustrack', function () { /* Code excerpted. */ })
         navigator.mediaSession.setActionHandler('nexttrack', this.next)
       }
+    },
+    title: {
+      handler () {
+        this.$nuxt.$emit('updateTitle', this.title)
+      },
+      immediate: true
     }
   },
   mounted () {
@@ -327,8 +336,6 @@ export default Vue.extend({
     } else {
       this.player.volume = 0.15
     }
-
-    this.updateTitle()
   },
   beforeDestroy () {
     this.player.pause()
@@ -370,9 +377,6 @@ export default Vue.extend({
       this.shuffling = true
       this.playing = false
       this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)] // random :p
-    },
-    updateTitle () {
-      this.$nuxt.$emit('updateTitle', this.title)
     },
     itemClass (item: any) {
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''
