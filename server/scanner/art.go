@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/jpeg"
 	_ "image/png"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -30,6 +31,8 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 	}
 
 	totalBytes := 0
+	totalCoverJpg := 0
+	totalMetaImage := 0
 
 	for _, album := range albums {
 		// scan for album artworks here :)
@@ -37,99 +40,62 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 		// then we can try using the tags library to retrieve an embedded image
 
 		coverJpg := filepath.Join(sc.MusicPath, album.Path, "cover.jpg")
-		if _, err := os.Stat(coverJpg); err == nil {
-			fmt.Printf("FOUND\tcoverJpg: %v\n", coverJpg)
-			file, _ := os.Open(coverJpg)
-			// FIXME: this is a bit redundantW
-
-			orig, _, err := image.Decode(file)
+		if file, err := os.Open(coverJpg); err == nil {
+			output, err := sc.scaleImage(file)
 			if err != nil {
-				sc.Log.Error("could not decode art file",
-					zap.String("path", coverJpg),
+				sc.Log.Error("could not scale image",
+					zap.String("image_path", coverJpg),
+					zap.Error(err),
 				)
 				continue
 			}
+			album.AlbumArt = output.Bytes()
+			totalCoverJpg += 1
+		} else {
+			song := models.Song{}
+			err := db.Get(&song,
+				`SELECT * FROM song
+				WHERE album_id = $1
+				LIMIT 1;`,
+				album.ID)
 
-			resized := image.NewRGBA(image.Rect(0, 0, 500, 500))
+			if err != nil {
+				// sc.Log.Warn("could not get song from album",
+				// 	zap.Error(err),
+				// 	zap.String("album_path", album.Path),
+				// )
+				continue
+			}
 
-			draw.NearestNeighbor.Scale(resized, resized.Rect, orig, orig.Bounds(), draw.Over, nil)
+			f, err := os.Open(filepath.Join(sc.MusicPath, song.Path))
+			if err != nil {
+				sc.Log.Error("could not open song", zap.String("song_path", song.Path))
+				continue
+			}
 
-			output := bytes.Buffer{}
+			meta, err := tag.ReadFrom(f)
+			if err != nil {
+				sc.Log.Error("could not read tags", zap.String("song_path", song.Path))
+				continue
+			}
 
-			jpeg.Encode(&output, resized, nil)
+			if meta.Picture() == nil {
+				// sc.Log.Error("no picture embedded", zap.String("song_path", song.Path))
+				continue
+			}
+
+			output, err := sc.scaleImage(bytes.NewReader(meta.Picture().Data))
+			if err != nil {
+				sc.Log.Error("could not scale image",
+					zap.String("song", song.Path),
+					zap.Error(err),
+				)
+				continue
+			}
 
 			album.AlbumArt = output.Bytes()
-
-			_, err = db.NamedExec(
-				`UPDATE album
-				SET album_art = :album_art
-				WHERE id = :id;`,
-				album)
-
-			if err != nil {
-				sc.Log.Error("could not insert art to db",
-					zap.String("path", coverJpg),
-				)
-				continue
-			}
-			totalBytes += len(album.AlbumArt)
-			continue
+			totalMetaImage += 1
 		}
-
-		song := models.Song{}
-		err := db.Get(&song,
-			`SELECT * FROM song
-			WHERE album_id = $1
-			LIMIT 1;`,
-			album.ID)
-
-		if err != nil {
-			sc.Log.Warn("could not get song from album",
-				zap.Error(err),
-				zap.String("album_path", album.Path),
-			)
-			continue
-		}
-
-		fmt.Println(song.Path)
-
-		f, err := os.Open(filepath.Join(sc.MusicPath, song.Path))
-		if err != nil {
-			return err
-		}
-
-		meta, err := tag.ReadFrom(f)
-		if err != nil {
-			sc.Log.Error("could not read tags", zap.String("song_path", song.Path))
-			return err
-		}
-
-		if meta.Picture() == nil {
-			sc.Log.Error("no picture embedded", zap.String("song_path", song.Path))
-			continue
-		}
-
-		input := bytes.Buffer{}
-
-		input.Write(meta.Picture().Data)
-
-		orig, _, err := image.Decode(&input)
-		if err != nil {
-			sc.Log.Error("could not decode art file",
-				zap.String("path", coverJpg),
-			)
-			continue
-		}
-
-		resized := image.NewRGBA(image.Rect(0, 0, 500, 500))
-
-		draw.NearestNeighbor.Scale(resized, resized.Rect, orig, orig.Bounds(), draw.Over, nil)
-
-		output := bytes.Buffer{}
-
-		jpeg.Encode(&output, resized, nil)
-
-		album.AlbumArt = output.Bytes()
 
 		_, err = db.NamedExec(
 			`UPDATE album
@@ -144,16 +110,30 @@ func (sc *Scanner) FindArt(db *sqlx.DB) error {
 			continue
 		}
 		totalBytes += len(album.AlbumArt)
-
-		fmt.Printf("NO\tcoverJpg: %v\n", coverJpg)
-
 	}
 
 	timeTaken := time.Since(startTime)
 	sc.Log.Info("finished scanning for art",
 		zap.Duration("duration", timeTaken.Round(time.Millisecond)),
 		zap.Int("total_bytes_mb", totalBytes/1000/1000),
+		zap.Int("total_cover_jpg", totalCoverJpg),
+		zap.Int("total_meta_image", totalMetaImage),
 	)
 
 	return nil
+}
+
+func (sc *Scanner) scaleImage(src io.Reader) (*bytes.Buffer, error) {
+	orig, _, err := image.Decode(src)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode art file: %s", err)
+	}
+
+	resized := image.NewRGBA(image.Rect(0, 0, 500, 500))
+	draw.NearestNeighbor.Scale(resized, resized.Rect, orig, orig.Bounds(), draw.Over, nil)
+
+	output := bytes.Buffer{}
+	jpeg.Encode(&output, resized, nil)
+
+	return &output, nil
 }
