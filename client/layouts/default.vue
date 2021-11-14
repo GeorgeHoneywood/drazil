@@ -37,13 +37,16 @@
     <v-main>
       <v-container>
         <Nuxt />
+        <MusicPlayer />
       </v-container>
     </v-main>
   </v-app>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue'
+
+export default Vue.extend({
   data () {
     return {
       clipped: true,
@@ -70,15 +73,15 @@ export default {
     }
   },
   created () {
-    this.setTitleListener()
+    this.setListeners()
   },
   methods: {
-    setTitleListener () {
+    setListeners () {
       this.$nuxt.$on('updateTitle', this.setTitle)
     },
-    setTitle (title) {
+    setTitle (title: string) {
       this.title = title || 'Monkey'
     }
   }
-}
+})
 </script>

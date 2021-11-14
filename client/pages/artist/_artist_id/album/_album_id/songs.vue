@@ -7,8 +7,8 @@
         color="primary"
         class="mr-2"
         icon
-        @click="play"
       >
+        <!--  @click="play" -->
         <v-icon>
           mdi-playlist-plus
         </v-icon>
@@ -18,8 +18,8 @@
         color="secondary"
         class="mr-auto"
         icon
-        @click="shuffle"
       >
+        <!--  @click="shuffle" -->
         <v-icon>
           mdi-shuffle
         </v-icon>
@@ -58,10 +58,7 @@
         <template
           v-if="currentSong.id == item.id"
         >
-          <v-icon v-if="player.paused" style="color: white">
-            mdi-pause
-          </v-icon>
-          <v-icon v-else style="color: white">
+          <v-icon style="color: white">
             mdi-play
           </v-icon>
         </template>
@@ -112,69 +109,6 @@
         </v-dialog>
       </template>
     </v-data-table>
-    <div class="mt-2 white" style="position: sticky; bottom: 0px; padding-bottom: 10px;">
-      <v-slider
-        v-model="percentComplete"
-        :hide-details="true"
-        :disabled="currentSong.id === undefined"
-        max="100"
-        min="0"
-        step="0.1"
-        @end="scrobble"
-        @start="scrobbleStart"
-      />
-      <div class="mt-2 d-flex">
-        <v-btn
-          :disabled="false"
-          elevation="1"
-          color="secondary"
-          class="mr-1"
-          @click="toggle"
-        >
-          <v-icon v-if="!player.paused">
-            mdi-pause
-          </v-icon>
-          <v-icon v-else>
-            mdi-play
-          </v-icon>
-        </v-btn>
-        <v-btn
-          elevation="1"
-          color="secondary"
-          class=""
-          @click="next"
-        >
-          <v-icon>
-            mdi-skip-next
-          </v-icon>
-        </v-btn>
-
-        <v-chip
-          label
-          medium
-          class="ml-auto"
-        >
-          {{ fmtMSS(currentTime) }} / {{ fmtMSS(duration) }}
-        </v-chip>
-
-        <v-chip
-          v-if="!$vuetify.breakpoint.mobile"
-          label
-          class="ml-1"
-        >
-          <v-slider
-            v-model="player.volume"
-            style="width: 150px"
-            dense
-            max="1"
-            min="0"
-            step="0.01"
-            class="my-auto"
-            prepend-icon="mdi-volume-high"
-          />
-        </v-chip>
-      </div>
-    </div>
   </div>
   <div v-else>
     <v-card>
@@ -191,65 +125,7 @@ import { SpecSong } from 'drazil-api'
 import axios from 'axios'
 import { api, getSongLink, getAlbumArtLink } from '~/util/api'
 
-function fmtMSS (s: number): string {
-  const date = new Date(0)
-  date.setSeconds(s)
-  return date.toISOString().substr(14, 5)
-}
-
 export default Vue.extend({
-  async asyncData (context) {
-    try {
-      const res = await api.drazilListSongs(context.route.params.artist_id, context.route.params.album_id)
-
-      return {
-        songs: res.data.songs!,
-        artistName: res.data.artistName!,
-        albumName: res.data.albumName!,
-        loading: false,
-        title: `${res.data.artistName} - ${res.data.albumName}`,
-        breadcrumbs: [
-          {
-            text: 'Artists',
-            disabled: false,
-            to: {
-              name: 'artists'
-            },
-            exact: true
-          },
-          {
-            text: res.data.artistName!,
-            disabled: false,
-            to: {
-              name: 'artist-artist_id-albums',
-              params: {
-                artist_id: context.route.params.artist_id
-              }
-            },
-            exact: true
-          },
-          {
-            text: res.data.albumName!,
-            disabled: false,
-            to: {
-              name: 'artist-artist_id-album-album_id-songs',
-              params: {
-                artist_id: context.route.params.artist_id,
-                album_id: context.route.params.album_id
-              }
-            },
-            exact: true
-          }
-        ]
-      }
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response!.status === 404) {
-          return { notFound: true }
-        }
-      }
-    }
-  },
   data () {
     return {
       headers: [
@@ -285,37 +161,11 @@ export default Vue.extend({
       artistName: 'Loading...',
       albumName: 'Loading...',
       currentSong: {} as SpecSong,
-      breadcrumbs: [],
-      playing: false,
-      shuffling: false,
-      currentTime: 0,
-      duration: 0,
-      percentComplete: 0,
-      scrobbling: false,
-      player: {} as HTMLAudioElement
+      breadcrumbs: [] as any[]
+
     }
   },
   watch: {
-    currentSong () {
-      this.player!.src = getSongLink(this.$route.params.artist_id,
-        this.$route.params.album_id, this.currentSong.id!)
-      this.player!.load()
-      this.player!.play()
-
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: this.currentSong.name,
-          artist: this.artistName,
-          album: this.albumName,
-          artwork: [
-            { src: `${getAlbumArtLink(this.$route.params.artist_id, this.$route.params.album_id)}` }
-          ]
-        })
-
-        // navigator.mediaSession.setActionHandler('previoustrack', function () { /* Code excerpted. */ })
-        navigator.mediaSession.setActionHandler('nexttrack', this.next)
-      }
-    },
     title: {
       handler () {
         this.$nuxt.$emit('updateTitle', this.title)
@@ -323,83 +173,69 @@ export default Vue.extend({
       immediate: true
     }
   },
-  mounted () {
-    this.player = new Audio()
-
-    this.player.addEventListener('ended', this.next)
-    this.player.addEventListener('timeupdate', this.timeUpdate)
-    this.player.addEventListener('durationchange', this.durationUpdate)
-    this.player.addEventListener('loadedmetadata', this.durationUpdate)
-
-    if (this.$vuetify.breakpoint.mobile) {
-      this.player.volume = 1
-    } else {
-      this.player.volume = 0.15
-    }
-  },
-  beforeDestroy () {
-    this.player.pause()
-    this.player = new Audio()
+  beforeMount () {
+    this.loadSongs()
   },
   methods: {
-    clicked (row: SpecSong) {
-      this.currentSong = row
-    },
-    next () {
-      if (this.shuffling) {
-        this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)]
-        return
-      }
+    async loadSongs () {
+      try {
+        const res = await api.drazilListSongs(this.$route.params.artist_id, this.$route.params.album_id)
 
-      const nextSong = this.songs[this.currentSong.number!]
+        this.songs = res.data.songs!
+        this.artistName = res.data.artistName!
+        this.albumName = res.data.albumName!
+        this.loading = false
+        this.title = `${res.data.artistName} - ${res.data.albumName}`
+        this.breadcrumbs = [
+          {
+            text: 'Artists',
+            disabled: false,
+            to: {
+              name: 'artists'
+            },
+            exact: true
+          },
+          {
+            text: res.data.artistName!,
+            disabled: false,
+            to: {
+              name: 'artist-artist_id-albums',
+              params: {
+                artist_id: this.$route.params.artist_id
+              }
+            },
+            exact: true
+          },
+          {
+            text: res.data.albumName!,
+            disabled: false,
+            to: {
+              name: 'artist-artist_id-album-album_id-songs',
+              params: {
+                artist_id: this.$route.params.artist_id,
+                album_id: this.$route.params.album_id
+              }
+            },
+            exact: true
+          }
+        ]
 
-      if (!nextSong) {
-        this.playing = false
-        this.currentSong = {}
-        return
-      }
-
-      this.currentSong = nextSong
-    },
-    play () {
-      this.playing = true
-      this.shuffling = false
-      this.currentSong = this.songs[0]
-    },
-    toggle () {
-      if (this.player!.paused) {
-        this.player!.play()
-      } else {
-        this.player!.pause()
+        this.$nuxt.$emit('queue', this.songs)
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response!.status === 404) {
+            return { notFound: true }
+          }
+        }
       }
     },
-    shuffle () {
-      this.shuffling = true
-      this.playing = false
-      this.currentSong = this.songs[Math.floor(Math.random() * this.songs.length)] // random :p
+    clicked (clicked : SpecSong) {
+      this.$nuxt.$emit('songClicked', clicked)
+      this.currentSong = clicked
     },
     itemClass (item: any) {
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''
     },
-    timeUpdate () {
-      if (this.scrobbling) {
-        return
-      }
-
-      this.currentTime = this.player!.currentTime
-      this.percentComplete = (this.currentTime / this.duration) * 100
-    },
-    durationUpdate () {
-      this.duration = this.player!.duration
-    },
-    scrobble () {
-      this.player!.currentTime = (this.percentComplete / 100) * this.player!.duration
-      this.scrobbling = false
-    },
-    scrobbleStart () {
-      this.scrobbling = true
-    },
-    fmtMSS,
     getSongLink,
     getAlbumArtLink
   }
