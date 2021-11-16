@@ -46,6 +46,8 @@ message Artist {
   string name = 1;
   string image_url = 2;
   int64 id = 3;
+  int64 album_count = 4;
+  int64 song_count = 5;
 }
 
 message AlbumsRequest {
@@ -62,6 +64,8 @@ message AlbumsReply {
 message Album {
   int64 id = 1;
   string name = 3;
+  int64 song_count = 5;
+  int64 year = 6;
 }
 
 message SongsRequest {

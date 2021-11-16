@@ -200,6 +200,14 @@
         },
         "name": {
           "type": "string"
+        },
+        "songCount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "year": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -301,6 +309,14 @@
           "type": "string"
         },
         "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "albumCount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "songCount": {
           "type": "string",
           "format": "int64"
         }

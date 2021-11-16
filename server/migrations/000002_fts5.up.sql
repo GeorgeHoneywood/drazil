@@ -15,8 +15,7 @@ CREATE VIRTUAL TABLE album_fts USING fts5 (
 CREATE VIRTUAL TABLE song_fts USING fts5 (
     name,
     lyrics,
-    year,
-    content='song',
+        content='song',
     content_rowid='id',
     tokenize="trigram"
 );
@@ -63,20 +62,20 @@ CREATE TRIGGER album_au AFTER UPDATE ON album
 
 CREATE TRIGGER song_ai AFTER INSERT ON song
     BEGIN
-        INSERT INTO song_fts (rowid, name, lyrics, year)
-        VALUES (new.id, new.name, new.lyrics, new.year);
+        INSERT INTO song_fts (rowid, name, lyrics)
+        VALUES (new.id, new.name, new.lyrics);
     END;
 
 CREATE TRIGGER song_ad AFTER DELETE ON song
     BEGIN
-        INSERT INTO song_fts (song_fts, rowid, name, lyrics, year)
-        VALUES ('delete', old.id, old.name, old.lyrics, old.year);
+        INSERT INTO song_fts (song_fts, rowid, name, lyrics)
+        VALUES ('delete', old.id, old.name, old.lyrics);
     END;
 
 CREATE TRIGGER song_au AFTER UPDATE ON song
     BEGIN
-        INSERT INTO song_fts (song_fts, rowid, name, lyrics, year)
-        VALUES ('delete', old.id, old.name, old.lyrics, old.year);
-        INSERT INTO song_fts (rowid, name, lyrics, year)
-        VALUES (new.id, new.name, new.lyrics, new.year);
+        INSERT INTO song_fts (song_fts, rowid, name, lyrics)
+        VALUES ('delete', old.id, old.name, old.lyrics);
+        INSERT INTO song_fts (rowid, name, lyrics)
+        VALUES (new.id, new.name, new.lyrics);
     END;

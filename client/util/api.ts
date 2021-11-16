@@ -1,4 +1,12 @@
 import { DrazilApi, Configuration } from 'drazil-api'
+import { SpecSong } from '~/api-client'
+
+export type FlatSong = SpecSong & {
+  albumName: string,
+  artistName: string,
+  artistId: string,
+  albumId:string
+  }
 
 const config = new Configuration({})
 

@@ -53,11 +53,6 @@ export default Vue.extend({
       drawer: false,
       items: [
         {
-          icon: 'mdi-apps',
-          title: 'Welcome',
-          to: '/'
-        },
-        {
           icon: 'mdi-account-multiple',
           title: 'Artists',
           to: '/artists'
@@ -69,11 +64,16 @@ export default Vue.extend({
         }
       ],
       miniVariant: false,
-      title: 'Welcome to Monkey!'
+      title: 'welcome to drazil!'
     }
   },
   created () {
     this.setListeners()
+  },
+  mounted () {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      this.setDarkTheme(e.matches)
+    })
   },
   methods: {
     setListeners () {
@@ -81,7 +81,11 @@ export default Vue.extend({
     },
     setTitle (title: string) {
       this.title = title || 'Monkey'
+    },
+    setDarkTheme (theme : boolean) {
+      this.$vuetify.theme.dark = theme
     }
   }
+
 })
 </script>

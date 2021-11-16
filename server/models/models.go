@@ -12,17 +12,21 @@ import (
 )
 
 type Artist struct {
-	ID   int64
-	Name string
-	Path string
+	ID         int64
+	Name       string
+	Path       string
+	AlbumCount int64 `db:"album_count"`
+	SongCount  int64 `db:"song_count"`
 }
 
 type Album struct {
-	ID       int64
-	ArtistID int64 `db:"artist_id"`
-	Name     string
-	Path     string
-	AlbumArt []byte `db:"album_art"`
+	ID        int64
+	ArtistID  int64 `db:"artist_id"`
+	Name      string
+	Path      string
+	AlbumArt  []byte `db:"album_art"`
+	SongCount int64  `db:"song_count"`
+	Year      int
 }
 
 type Song struct {
@@ -33,7 +37,6 @@ type Song struct {
 	Path     string
 	Lyrics   string
 	FileType string `db:"file_type"`
-	Year     int
 }
 
 func SetupTables(DBPath string, fs embed.FS) error {

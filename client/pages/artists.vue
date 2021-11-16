@@ -75,6 +75,16 @@ export default Vue.extend({
           text: 'Artist name',
           value: 'name',
           sortable: true
+        },
+        {
+          text: 'Album count',
+          value: 'albumCount',
+          width: '1%'
+        },
+        {
+          text: 'Song count',
+          value: 'songCount',
+          width: '1%'
         }
       ],
       artists: [] as SpecArtist[],

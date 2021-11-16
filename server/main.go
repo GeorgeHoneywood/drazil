@@ -71,6 +71,11 @@ func main() {
 			s.Log.Error("could not scan for music", zap.Error(err))
 		}
 
+		err = sc.SetTotals(s.DB)
+		if err != nil {
+			s.Log.Error("could not scan for music", zap.Error(err))
+		}
+
 		err = sc.FindArt(s.DB)
 		if err != nil {
 			s.Log.Error("could not scan for art", zap.Error(err))

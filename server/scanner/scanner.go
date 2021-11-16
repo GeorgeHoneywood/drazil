@@ -3,6 +3,7 @@ package scanner
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -177,6 +178,8 @@ func (sc *Scanner) findSongs(tx *sqlx.Tx, album *models.Album, artist *models.Ar
 		return err
 	}
 
+	foundMeta := false
+
 	for i, song_name := range song_names {
 		if song_name.IsDir() {
 			// this must be a Disc 01/CD 01 folder or so
@@ -273,14 +276,44 @@ func (sc *Scanner) findSongs(tx *sqlx.Tx, album *models.Album, artist *models.Ar
 			}
 
 			if meta != nil {
-				song.Lyrics = meta.Lyrics()
+				// trust the metadata more :)
+				if meta.Lyrics() != "" {
+					song.Lyrics = meta.Lyrics()
+				}
+
 				song.FileType = string(meta.FileType())
-				song.Year = meta.Year()
+
+				if meta.Title() != "" {
+					song.Name = meta.Title()
+				}
+
+				number, _ := meta.Track()
+				if number != 0 {
+					song.Number = int32(number)
+				}
+
+				// fix some album details if we can
+				if !foundMeta &&
+					meta.Album() != "" &&
+					meta.Year() != 0 {
+					_, err = tx.Exec(`
+					UPDATE album
+					SET name = $1, year = $2
+					WHERE id = $3`,
+						meta.Album(), meta.Year(), album.ID)
+
+					fmt.Printf("meta.Album(): %v\n", meta.Album())
+					if err != nil {
+						return err
+					}
+
+					foundMeta = true
+				}
 			}
 
 			_, err = tx.NamedExec(`
-			INSERT INTO song (album_id, number, name, path, lyrics, file_type, year)
-			VALUES (:album_id, :number, :name, :path, :lyrics, :file_type, :year)
+			INSERT INTO song (album_id, number, name, path, lyrics, file_type)
+			VALUES (:album_id, :number, :name, :path, :lyrics, :file_type)
 			RETURNING id;`, song)
 			if err != nil {
 				return err

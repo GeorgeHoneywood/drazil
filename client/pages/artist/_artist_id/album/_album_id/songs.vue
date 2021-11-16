@@ -7,8 +7,8 @@
         color="primary"
         class="mr-2"
         icon
+        @click="play"
       >
-        <!--  @click="play" -->
         <v-icon>
           mdi-playlist-plus
         </v-icon>
@@ -18,8 +18,8 @@
         color="secondary"
         class="mr-auto"
         icon
+        @click="shuffle"
       >
-        <!--  @click="shuffle" -->
         <v-icon>
           mdi-shuffle
         </v-icon>
@@ -123,7 +123,7 @@
 import Vue from 'vue'
 import { SpecSong } from 'drazil-api'
 import axios from 'axios'
-import { api, getSongLink, getAlbumArtLink } from '~/util/api'
+import { api, getSongLink, getAlbumArtLink, FlatSong } from '~/util/api'
 
 export default Vue.extend({
   data () {
@@ -154,7 +154,7 @@ export default Vue.extend({
           align: 'right'
         }
       ],
-      songs: [] as SpecSong[],
+      songs: [] as FlatSong[],
       loading: true,
       notFound: false,
       title: 'Songs',
@@ -181,9 +181,19 @@ export default Vue.extend({
       try {
         const res = await api.drazilListSongs(this.$route.params.artist_id, this.$route.params.album_id)
 
-        this.songs = res.data.songs!
         this.artistName = res.data.artistName!
         this.albumName = res.data.albumName!
+
+        for (const song of res.data.songs!) {
+          this.songs = [...this.songs, {
+            ...song,
+            albumName: this.albumName,
+            artistName: this.artistName,
+            albumId: this.$route.params.album_id,
+            artistId: this.$route.params.artist_id
+          }]
+        }
+
         this.loading = false
         this.title = `${res.data.artistName} - ${res.data.albumName}`
         this.breadcrumbs = [
@@ -219,8 +229,6 @@ export default Vue.extend({
             exact: true
           }
         ]
-
-        this.$nuxt.$emit('queue', this.songs)
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response!.status === 404) {
@@ -229,9 +237,21 @@ export default Vue.extend({
         }
       }
     },
-    clicked (clicked : SpecSong) {
-      this.$nuxt.$emit('songClicked', clicked)
-      this.currentSong = clicked
+    clicked (clicked: SpecSong) {
+      this.$nuxt.$emit('enqueue', [clicked])
+      // this.currentSong = clicked
+    },
+    play () {
+      this.$nuxt.$emit('enqueue', this.songs)
+    },
+    shuffle () {
+      const shuffled = this.songs
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      }
+
+      this.$nuxt.$emit('enqueue', shuffled)
     },
     itemClass (item: any) {
       return this.currentSong.id === item.id ? 'primary lighten-1 white--text rounded-pill' : ''

@@ -10,6 +10,7 @@ CREATE TABLE album (
     artist_id INTEGER NOT NULL,
     path VARCHAR NOT NULL,
     album_art VARCHAR,
+    year INTEGER DEFAULT 0,
     FOREIGN KEY(artist_id) REFERENCES artist(id)
 );
     
@@ -21,6 +22,5 @@ CREATE TABLE song (
     path VARCHAR NOT NULL,
     lyrics VARCHAR,
     file_type VARCHAR NOT NULL,
-    year INTEGER,
     FOREIGN KEY(album_id) REFERENCES album(id)
 );

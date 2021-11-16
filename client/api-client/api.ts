@@ -83,6 +83,18 @@ export interface SpecAlbum {
      * @memberof SpecAlbum
      */
     name?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAlbum
+     */
+    songCount?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecAlbum
+     */
+    year?: string;
 }
 /**
  * 
@@ -244,6 +256,18 @@ export interface SpecArtist {
      * @memberof SpecArtist
      */
     id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecArtist
+     */
+    albumCount?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpecArtist
+     */
+    songCount?: string;
 }
 /**
  * 

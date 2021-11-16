@@ -38,9 +38,11 @@ func (h *Handler) ListArtists(ctx context.Context, in *spec.ArtistsRequest) (*sp
 	out := make([]*spec.Artist, len(artists))
 	for i, artist := range artists {
 		out[i] = &spec.Artist{
-			Name:     artist.Name,
-			ImageUrl: "yzx",
-			Id:       artist.ID,
+			Name:       artist.Name,
+			ImageUrl:   "yzx",
+			Id:         artist.ID,
+			AlbumCount: artist.AlbumCount,
+			SongCount:  artist.SongCount,
 		}
 	}
 
@@ -80,8 +82,10 @@ func (h *Handler) ListAlbums(ctx context.Context, in *spec.AlbumsRequest) (*spec
 	out := make([]*spec.Album, len(albums))
 	for i, album := range albums {
 		out[i] = &spec.Album{
-			Id:   album.ID,
-			Name: album.Name,
+			Id:        album.ID,
+			Name:      album.Name,
+			SongCount: album.SongCount,
+			Year:      int64(album.Year),
 		}
 	}
 
@@ -136,7 +140,6 @@ func (h *Handler) ListSongs(ctx context.Context, in *spec.SongsRequest) (*spec.S
 			Number:   song.Number,
 			Lyrics:   song.Lyrics,
 			FileType: song.FileType,
-			Year:     int32(song.Year),
 		}
 	}
 
@@ -231,7 +234,6 @@ func (h *Handler) Search(ctx context.Context, in *spec.SearchRequest) (*spec.Sea
 			Number:     song.Number,
 			Lyrics:     song.Lyrics,
 			FileType:   song.FileType,
-			Year:       int32(song.Year),
 		}
 	}
 

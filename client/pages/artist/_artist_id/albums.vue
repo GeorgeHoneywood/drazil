@@ -82,8 +82,19 @@ export default Vue.extend({
           text: 'Album name',
           value: 'name',
           sortable: true
+        },
+        {
+          text: 'Year',
+          value: 'year',
+          sortable: true,
+          width: '1%'
+        },
+        {
+          text: 'Song count',
+          value: 'songCount',
+          sortable: true,
+          width: '1%'
         }
-
       ],
       albums: [] as SpecAlbum[],
       loading: true,
