@@ -13,9 +13,9 @@
     <div class="mt-2 d-flex">
       <v-btn
         :disabled="false"
-        elevation="1"
-        color="secondary"
-        class="mr-1"
+        color="white"
+        class="primary mr-1"
+        icon
         @click="toggle"
       >
         <v-icon v-if="!player.paused">
@@ -26,10 +26,11 @@
         </v-icon>
       </v-btn>
       <v-btn
-        elevation="1"
-        color="secondary"
-        class="mr-1"
-        :disabled="playHead - 1 < 0"
+        dark
+        color="white"
+        class="secondary mr-1"
+        icon
+        :disabled="playHead - 1 < 0 && player.currentTime < 10"
         @click="prev"
       >
         <v-icon>
@@ -37,9 +38,11 @@
         </v-icon>
       </v-btn>
       <v-btn
-        elevation="1"
-        color="secondary"
+        dark
+        color="white"
+        class="secondary"
         :disabled="playHead + 1 >= queue.length"
+        icon
         @click="next"
       >
         <v-icon>
@@ -47,10 +50,60 @@
         </v-icon>
       </v-btn>
 
+      <v-bottom-sheet
+        v-model="sheet"
+      >
+        <template #activator="{ on, attrs }">
+          <v-btn
+            dark
+            icon
+            v-bind="attrs"
+            class="ml-1 mr-auto secondary"
+            v-on="on"
+          >
+            <v-icon>mdi-playlist-music</v-icon>
+          </v-btn>
+        </template>
+        <v-sheet>
+          <v-list>
+            <draggable
+              v-model="queue"
+              ghost-class="ghost"
+              @end="adjustPlayhead"
+            >
+              <v-list-item
+                v-for="(song, index) in queue"
+                :key="song.id"
+                two-line
+                :class="index === playHead ? 'accent darken-1' : 'hello'"
+
+                @click="select(index)"
+              >
+                <v-list-item-avatar
+                  rounded="rounded"
+                >
+                  <v-img
+                    :src="getAlbumArtLink(song.artistId, song.albumId)"
+                  />
+                </v-list-item-avatar>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ song.name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ song.artistName }} - {{ song.albumName }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </draggable>
+          </v-list>
+        </v-sheet>
+      </v-bottom-sheet>
+
       <v-chip
         v-if="!$vuetify.breakpoint.mobile"
         label
-        class="ml-auto my-auto"
+        class="my-auto"
         @wheel.stop.prevent="volumeScroll"
         v-text="currentSong.name"
       />
@@ -81,9 +134,10 @@
         />
       </v-chip>
     </div>
+
     <v-snackbar
       v-model="snackbar"
-      :top="true"
+
       :right="true"
       :timeout="2000"
     >
@@ -105,6 +159,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import draggable from 'vuedraggable'
 import { getSongLink, getAlbumArtLink, FlatSong } from '~/util/api'
 
 function fmtMSS (s: number): string {
@@ -114,6 +169,9 @@ function fmtMSS (s: number): string {
 }
 
 export default Vue.extend({
+  components: {
+    draggable
+  },
   data () {
     return {
       queue: [] as FlatSong[],
@@ -127,7 +185,8 @@ export default Vue.extend({
       player: new Audio(),
       playHead: 0,
       snackbar: false,
-      snackbarText: ''
+      snackbarText: '',
+      sheet: false
     }
   },
   watch: {
@@ -145,7 +204,7 @@ export default Vue.extend({
           artist: this.currentSong.albumName,
           album: this.currentSong.artistName,
           artwork: [
-            { src: `${getAlbumArtLink(this.$route.params.artist_id, this.$route.params.album_id)}` }
+            { src: `${getAlbumArtLink(this.currentSong.artistId, this.currentSong.albumId)}` }
           ]
         })
 
@@ -198,6 +257,11 @@ export default Vue.extend({
       this.currentSong = this.queue[this.playHead]
     },
     prev () {
+      if (this.player.currentTime > 10) {
+        this.player.currentTime = 0
+        return
+      }
+
       if (this.playHead - 1 < 0) { return }
 
       this.playHead--
@@ -210,6 +274,16 @@ export default Vue.extend({
         this.player!.pause()
       }
     },
+    select (index :number) {
+      this.playHead = index
+      this.currentSong = this.queue[this.playHead]
+    },
+    adjustPlayhead () {
+      // make sure the playhead still points in the right place after a drag/drop
+
+      this.playHead = this.queue.findIndex(song => song.id === this.currentSong.id)
+    },
+
     timeUpdate () {
       if (this.scrobbling) {
         return
@@ -249,3 +323,10 @@ export default Vue.extend({
   }
 })
 </script>
+
+<style scoped>
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+</style>
