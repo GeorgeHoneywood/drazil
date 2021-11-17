@@ -74,6 +74,8 @@ export default Vue.extend({
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       this.setDarkTheme(e.matches)
     })
+
+    this.setDarkTheme(window.matchMedia('(prefers-color-scheme: dark)').matches)
   },
   methods: {
     setListeners () {
