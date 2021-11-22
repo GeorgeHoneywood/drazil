@@ -36,7 +36,7 @@
     </v-app-bar>
     <v-main>
       <v-container>
-        <Nuxt />
+        <Nuxt keep-alive />
         <MusicPlayer />
       </v-container>
     </v-main>
