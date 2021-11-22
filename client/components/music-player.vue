@@ -247,6 +247,10 @@ export default Vue.extend({
       }
       this.queue = [...this.queue, ...songs]
 
+      if (this.player.ended) {
+        this.next()
+      }
+
       this.snackbarText = `${songs.length} added to queue`
       this.snackbar = true
     },
